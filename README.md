@@ -52,16 +52,16 @@ k = exchange.fill_sheet_file("btc")
 
 |  | Gemini  |Bitstamp | Kraken |
 | ------------- | :-------------: | :-------------: | :-------------: |
-| get_actual_price | * | * | * |
-| buy_limit        | * | * |   |
-| buy_instant        | * | * |   |
-| show_open_orders        | * | * |   |
-| check_status        | * | * |   |
-| cancel_oder        | * | * |   |
-| get_balance        | * | * |   |
-| get_amount_bought        | * | * |   |
-| withdraw_to_wallet        | * | * |   |
-| show_transactions        | * | * |   |
-| fill_sheet_file        | * | * |   |
+| get_actual_price  | * | * | * |
+| buy_limit         | * | * |   |
+| buy_instant       | * | * |   |
+| show_open_orders  | * | * |   |
+| check_status      | * | * |   |
+| cancel_oder       | * | * |   |
+| get_balance       | * | * |   |
+| get_amount_bought | * | * |   |
+| withdraw_to_wallet| * | * |   |
+| show_transactions | * | * |   |
+| fill_sheet_file   | * | * |   |
 
 
