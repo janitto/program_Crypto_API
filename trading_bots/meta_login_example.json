@@ -1,0 +1,35 @@
+{
+  "bitstamp_buy": {
+    "api_key": "123exampleAPI456publicKey789",
+    "api_secret": "THIS321is456SecterKEy789"
+    },
+  "bitstamp_sell": {
+    "api_key": "123exampleAPI456publicKey789",
+    "api_secret": "THIS321is456SecterKEy789"
+    },
+  "bitstamp_balance": {
+    "api_key": "123exampleAPI456publicKey789",
+    "api_secret": "THIS321is456SecterKEy789"
+    },
+  "bitstamp_cancel": {
+    "api_key": "123exampleAPI456publicKey789",
+    "api_secret": "THIS321is456SecterKEy789"
+  },
+  "kraken_balance": {
+    "api_key": "123exampleAPI456publicKey789+41jy/Am7th1o1",
+    "api_secret": "THIS321is456SecterKEy789"
+  },
+  "gemini": {
+    "api_key": "account-Th1sIsD3M0AcounT",
+    "api_secret": "THIS321is456SecterKEy789"
+  },
+  "my_addresses": {
+    "btc": "bc1abcdefghi",
+    "eth": "0xabcdefghi",
+    "ltc": "Mabcdefghi"
+  },
+  "gmail": {
+    "email": "example@gmail.com",
+    "password": "passwordTOgmail"
+  }
+}
