@@ -37,7 +37,7 @@ exchange= Kraken("example")
 # list of functions
 a = exchange.get_actual_price("btc")
 b = exchange.buy_limit("btceur", 5, 39000)
-c = exchange.buy_intant("btceur", 5)
+c = exchange.buy_instant("btceur", 5)
 d = exchange.show_open_orders()
 e = exchange.check_status(123456789)
 f = exchange.cancel_oder(123456789)
@@ -54,3 +54,14 @@ k = exchange.fill_sheet_file("btc")
 | ------------- | :-------------: | :-------------: | :-------------: |
 | get_actual_price | * | * | * |
 | buy_limit        | * | * |   |
+| buy_instant        | * | * |   |
+| show_open_orders        | * | * |   |
+| check_status        | * | * |   |
+| cancel_oder        | * | * |   |
+| get_balance        | * | * |   |
+| get_amount_bought        | * | * |   |
+| withdraw_to_wallet        | * | * |   |
+| show_transactions        | * | * |   |
+| fill_sheet_file        | * | * |   |
+
+
