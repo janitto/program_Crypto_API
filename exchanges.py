@@ -502,7 +502,6 @@ class Bitstamp:
         return r.json()
 
 
-
 def send_mail(crypto, price, action, body):
 
     with open(f"trading_bots/meta_login_example.json") as login:
