@@ -85,7 +85,7 @@ Set up a kron job with defined parameters to enjoy DCA.
 (for audit configure connection to google spreadsheets)  
 (for withdraw enter your public addresses to metadata)
 
-### trailing_stop_sell.py _"currency"_ _"amount"_ "_trailing_"
+### trailing_stop_sell.py _"currency"_ _"amount"_ _"trailing"_
 
 Strategy for setting a guaranteed minimal sell price, which will automatically increase, if price of crypto increase.
 
@@ -101,3 +101,11 @@ Trailing price is set to 120*10% = 12 €
 If price of LTC decrease to 108 €, 1 LTC is sold.
 If price of LTC increase to 130 €, trailing threshold (currently 108 €) will be increased to 118 € (130 € - 12 €).
 If price of LTC drop then to 120 €, nothing will happen, but if drops to 118 €, 1 LTC is sold.
+
+### buy_low_sell_high.py _"currency"_
+
+Strategy, which buy if price drops by defined threshold and then sell if price increase by defined threshold.
+
+**currency(str)** -> symbol of crypto  
+
+(modify global variables in script with values of your choice)

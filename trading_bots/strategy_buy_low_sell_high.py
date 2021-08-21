@@ -18,8 +18,8 @@ logging.basicConfig(filename=f"{curr}_content_log.log",
                     format="%(asctime)s - %(message)s",
                     level="INFO")
 
-THRESHOLD_BUY = 0.03                        #decimal format of % which if decrease, then buy
-THRESHOLD_SELL = 0.045                      #decimal format of % which if increase, then sell
+THRESHOLD_BUY = 0.05                        #decimal format of % which if decrease, then buy
+THRESHOLD_SELL = 0.1                        #decimal format of % which if increase, then sell
 INVESTMENT = 20                             #investment in EUR
 CHECK_INTERVAL = 300                        #interval of price check in seconds
 TURNAROUND_PERIOD = 86400                   #86400 seconds is 1 day
