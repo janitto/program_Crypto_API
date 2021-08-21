@@ -80,10 +80,12 @@ dollar_cost_average.py "buy" 5 "btc"
 dollar_cost_average.py "audit" "btc"  
 dollar_cost_average.py "withdraw" "btc"  
 
+Set up a kron job with defined parameters to enjoy DCA.
+
 (for audit configure connection to google spreadsheets)  
 (for withdraw enter your public addresses to metadata)
 
-### trailing_stop_sell.py
+### trailing_stop_sell.py _"currency"_ _"amount"_ "_trailing_"
 
 Strategy for setting a guaranteed minimal sell price, which will automatically increase, if price of crypto increase.
 
