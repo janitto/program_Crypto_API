@@ -515,7 +515,7 @@ def send_mail(crypto, price, action, body):
         server.ehlo()
         server.login(gmail_username, gmail_password)
         server.sendmail(gmail_username, gmail_username,
-                        f"Subject: {crypto.upper()}  bol {action} za {price}\n\n{body}")
+                        f"Subject: {crypto.upper()} was {action} at price {price}\n\n{body}")
         server.quit()
         print("Email sent successfully.")
     except:
