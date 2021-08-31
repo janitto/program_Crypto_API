@@ -338,6 +338,9 @@ class Bitstamp:
         crypto_amount = round((eur_spend * .999) / float(price), 8)
 
         payload = {'amount': crypto_amount, 'price': price}
+
+        #{'price': '20000.00', 'amount': '0.00104895', 'type': '0', 'id': '1399223761735680','datetime': '2021-08-31 20:38:58.363000'}
+
         return self.bitstamp_api_query(f"buy/{pair}", payload)
 
     def buy_instant(self, pair, eur_spent):
@@ -358,6 +361,10 @@ class Bitstamp:
     def cancel_order(self, order_id):
         self.load_key(self.name, "bitstamp_cancel")
         payload = {'id': order_id}
+
+        #{'price': 20000, 'amount': 0.00104895, 'type': 0, 'id': 1399223761735680}
+
+
         return self.bitstamp_api_query("cancel_order", payload)
 
     def get_balance(self, currency=False):
