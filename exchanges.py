@@ -330,7 +330,7 @@ class Bitstamp:
         return float(price["bid"]), float(price["ask"])
 
     def buy_limit(self, pair, eur_spend, price=False):
-        self.load_key(self.name, "buy")
+        self.load_key(self.name, "bitstamp_buy")
         if not price:
             price = round(float(self.get_actual_price(pair[:3])[1]) * .999, 2)
         else:
@@ -339,30 +339,57 @@ class Bitstamp:
 
         payload = {'amount': crypto_amount, 'price': price}
 
-        #{'price': '20000.00', 'amount': '0.00104895', 'type': '0', 'id': '1399223761735680','datetime': '2021-08-31 20:38:58.363000'}
+        #{'price': '20000.00',
+        # 'amount': '0.00104895',
+        # 'type': '0',
+        # 'id': '1399223761735680',
+        # 'datetime': '2021-08-31 20:38:58.363000'}
 
         return self.bitstamp_api_query(f"buy/{pair}", payload)
 
     def buy_instant(self, pair, eur_spent):
         self.load_key(self.name, "bitstamp_buy")
         payload = {'amount': eur_spent}
+
+        #{'price': '1.68678',
+        # 'amount': '25.00000000',
+        # 'type': '0',
+        # 'id': '1337835995082753',
+        # 'datetime': '2021-03-11 09:31:30.652672'}
+
         return self.bitstamp_api_query(f"buy/instant/{pair}", payload)
-        # {'price': '1.68678', 'amount': '25.00000000', 'type': '0', 'id': '1337835995082753', 'datetime': '2021-03-11 09:31:30.652672'}
 
     def show_open_orders(self):
         self.load_key(self.name, "bitstamp_cancel")
+
+        # [{'price': '0.80000',
+        #   'currency_pair': 'GRT/EUR',
+        #   'datetime': '2021-09-07 13:16:09',
+        #   'amount': '26.22375000',
+        #   'type': '0',
+        #   'id': '1401592194912258'}]
+
         return self.bitstamp_api_query("open_orders/all")
 
     def check_status(self, order_id):
         self.load_key(self.name, "bitstamp_balance")
         payload = {'id': order_id}
+
+        #{'status': 'Canceled',
+        # 'id': 1401592194912258,
+        # 'amount_remaining': '26.22375000',
+        # 'transactions': []}
+
         return self.bitstamp_api_query("order_status", payload)
 
     def cancel_order(self, order_id):
         self.load_key(self.name, "bitstamp_cancel")
         payload = {'id': order_id}
 
-        #{'price': 20000, 'amount': 0.00104895, 'type': 0, 'id': 1399223761735680}
+        #{'price': 20000,
+        # 'amount': 0.00104895,
+        # 'type': 0,
+        # 'id': 1399223761735680}
 
 
         return self.bitstamp_api_query("cancel_order", payload)
