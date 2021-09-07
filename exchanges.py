@@ -168,7 +168,7 @@ class Gemini:
             if currency['currency'] == str(currency_to_withdraw).upper():
                 amount = currency['availableForWithdrawal']
         if float(amount) != 0:
-
+            #   to do: substract fees. (current fee is 0€)
             payload = {
                 "address": address,
                 "amount": amount
@@ -433,10 +433,19 @@ class Bitstamp:
             login.close()
 
         amount = self.get_balance(currency_to_withdraw)
+        fee = self.get_balance()
+        fee = float(fee[f"{str(currency_to_withdraw).lower()}_withdrawal_fee"])
+        amount = truncate(amount-fee, decimals=6)
 
-        self.load_key(self.name, "bitstamp_withdraw")
-        payload = {'amount': amount, 'address': address}
-        return self.bitstamp_api_query(f"{str(currency_to_withdraw).lower()}_withdrawal", payload)
+        if amount > 0:
+            self.load_key(self.name, "bitstamp_withdraw")
+            payload = {'amount': amount, 'address': address}
+
+            #{'id': 12049423}
+
+            return self.bitstamp_api_query(f"{str(currency_to_withdraw).lower()}_withdrawal", payload)
+        else:
+            return {"message": f"No {str(currency_to_withdraw).upper()} to withdraw."}
 
     def show_transactions(self, pair):
         self.load_key(self.name, "bitstamp_balance")
