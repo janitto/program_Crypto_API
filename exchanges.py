@@ -237,15 +237,15 @@ class Kraken:
                 login.close()
         return
 
-    def kraken_api_query(self, method, data=None):
-        if data is None:
-            data = {}
+    def kraken_api_query(self, method, payload=None):
+        if payload is None:
+            payload = {}
 
         request_url = f'{self.uri}/{self.apiversion}/private/{method}'
 
-        data['nonce'] = int(time.time() * 1000)
-        postdata = urlencode(data)
-        encoded = (str(data["nonce"]) + postdata).encode()
+        payload['nonce'] = int(time.time() * 1000)
+        postdata = urlencode(payload)
+        encoded = (str(payload["nonce"]) + postdata).encode()
         message = f"/{self.apiversion}/private/{method}".encode() + hashlib.sha256(encoded).digest()
         signature = hmac.new(base64.b64decode(self.secret), message, hashlib.sha512)
         sigdigest = base64.b64encode(signature.digest())
@@ -255,19 +255,27 @@ class Kraken:
             "API-Sign": sigdigest.decode()
         }
 
-        r = requests.post(request_url, headers=headers, data=data)
+        r = requests.post(request_url, headers=headers, data=payload)
         return r.json()
 
     @staticmethod
-    def get_actual_price(currency):
+    def kraken_currency_mappings(currency):
+
+        mappings = {"btc": "xbt"}
+
+        if currency in mappings:
+            return str(mappings[currency])
+        else:
+            return str(currency)
+
+    def get_actual_price(self, currency):
         currency_pair = str(currency).lower() + "eur"
         payload = {'pair': currency_pair.upper()}
         payload = urlencode(payload)
         try:
             price = requests.get(f"https://api.kraken.com/0/public/Ticker?{payload}").json()
 
-            if currency == "btc":
-                currency_pair = "xxbtzeur"
+            currency_pair = f"x{self.kraken_currency_mappings(currency)}zeur"
             buy = float(price["result"][currency_pair.upper()]["a"][0])
             sell = float(price["result"][currency_pair.upper()]["b"][0])
         except:
@@ -275,21 +283,37 @@ class Kraken:
             sell = 0
         return buy, sell
 
+    def buy_limit(self, pair, eur_spend, price=False):
+        self.load_key(self.name, "kraken")
+
+        if not price:
+            price = round(float(self.get_actual_price(pair[:3])[1]) * .999, 2)
+        else:
+            price = price
+        crypto_amount = round((eur_spend * .999) / float(price), 8)
+
+        first = self.kraken_currency_mappings(pair[:3])
+        second = self.kraken_currency_mappings(pair[3:])
+        pair = first + second
+
+        payload = {"ordertype": "limit",
+                   "type": "buy",
+                   "volume": crypto_amount,
+                   "pair": str(pair).upper(),
+                   "price": price}
+
+        return self.kraken_api_query("AddOrder", payload)
+
     def get_balance(self, currency=False):
-        self.load_key(self.name, "kraken_balance")
+        self.load_key(self.name, "kraken")
         r = self.kraken_api_query("Balance")
         if currency:
-
-            mappings = {"btc": "XXBT",
-                        "eth": "XETH",
-                        "xlm": "XXLM"}
-
             try:
-                mapped = mappings[str(currency).lower()]
+                mapped = self.kraken_currency_mappings(str(currency).lower)
             except:
                 mapped = currency
 
-            amount = r["result"][mapped]
+            amount = r["result"][f"X{str(mapped).upper()}"]
             return float(amount)
         else:
             for field in r["result"]:
