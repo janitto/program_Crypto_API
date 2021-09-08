@@ -19,6 +19,7 @@ class Gemini:
         self.name = name
         self.key = ""
         self.secret = ""
+        self.uri = "https://api.gemini.com"
 
     def load_key(self, name, action):
         if name:
@@ -33,7 +34,7 @@ class Gemini:
         if payload is None:
             payload = {}
 
-        request_url = 'https://api.gemini.com' + method
+        request_url = self.uri + method
         payload['request'] = method
         payload['nonce'] = int(time.time() * 1000)
         b64_payload = base64.b64encode(json.dumps(payload).encode('utf-8'))
@@ -220,9 +221,42 @@ class Gemini:
 
 class Kraken:
 
-    def __init__(self):
+    def __init__(self, name=""):
+        self.name = name
+        self.key = ""
+        self.secret = ""
         self.uri = "https://api.kraken.com"
         self.apiversion = "0"
+
+    def load_key(self, name, action):
+        if name:
+            with open(f"meta_login_{name}.json") as login:
+                data = json.load(login)
+                self.key = data[action]["api_key"]
+                self.secret = data[action]["api_secret"]
+                login.close()
+        return
+
+    def kraken_api_query(self, method, data=None):
+        if data is None:
+            data = {}
+
+        request_url = f'{self.uri}/{self.apiversion}/private/{method}'
+
+        data['nonce'] = int(time.time() * 1000)
+        postdata = urlencode(data)
+        encoded = (str(data["nonce"]) + postdata).encode()
+        message = f"/{self.apiversion}/private/{method}".encode() + hashlib.sha256(encoded).digest()
+        signature = hmac.new(base64.b64decode(self.secret), message, hashlib.sha512)
+        sigdigest = base64.b64encode(signature.digest())
+
+        headers = {
+            "API-Key": self.key,
+            "API-Sign": sigdigest.decode()
+        }
+
+        r = requests.post(request_url, headers=headers, data=data)
+        return r.json()
 
     @staticmethod
     def get_actual_price(currency):
@@ -240,6 +274,34 @@ class Kraken:
             buy = 0
             sell = 0
         return buy, sell
+
+    def get_balance(self, currency=False):
+        self.load_key(self.name, "kraken_balance")
+        r = self.kraken_api_query("Balance")
+        if currency:
+
+            mappings = {"btc": "XXBT",
+                        "eth": "XETH",
+                        "xlm": "XXLM"}
+
+            try:
+                mapped = mappings[str(currency).lower()]
+            except:
+                mapped = currency
+
+            amount = r["result"][mapped]
+            return float(amount)
+        else:
+            for field in r["result"]:
+                if float(r["result"][field]) != 0:
+                    currency = field
+                    amount = r["result"][field]
+                    if currency != "ZEUR":
+                        value = float(amount) * self.get_actual_price(currency)[1]
+                        print(f"{str(currency).upper()}: {amount} = {round(value, 4)} €")
+                    else:
+                        print(f"{str(currency).upper()}: {amount}")
+        return r
 
 class Bitstamp:
     #   https://www.bitstamp.net/api/

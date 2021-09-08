@@ -58,7 +58,7 @@ k = exchange.fill_sheet_file("btc")
 | show_open_orders  | * | OK |   |
 | check_status      | * | OK |   |
 | cancel_oder       | * | OK |   |
-| get_balance       | * | OK |   |
+| get_balance       | OK | OK | OK |
 | get_amount_bought | * | OK |   |
 | withdraw_to_wallet| * | OK |   |
 | show_transactions | OK | OK |   |
