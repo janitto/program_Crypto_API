@@ -56,12 +56,12 @@ k = exchange.fill_sheet_file("btc")
 | buy_limit         | OK | OK |   |
 | buy_instant       | * | OK |   |
 | show_open_orders  | * | OK |   |
-| check_status      | * | OK |   |
+| check_status      | * | OK | OK |
 | cancel_oder       | * | OK |   |
 | get_balance       | OK | OK | OK |
-| get_amount_bought | * | OK |   |
+| get_amount_bought | * | OK | OK |
 | withdraw_to_wallet| * | OK |   |
-| show_transactions | OK | OK |   |
+| show_transactions | OK | OK | OK |
 | fill_sheet_file   | * | * |   |
 
 ## Strategies

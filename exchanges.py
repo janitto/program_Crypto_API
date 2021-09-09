@@ -261,12 +261,25 @@ class Kraken:
     @staticmethod
     def kraken_currency_mappings(currency):
 
-        mappings = {"btc": "xbt"}
+        mappings = {"btc": "xbt",
+                    "doge": "xdg"}
 
         if currency in mappings:
             return str(mappings[currency])
         else:
             return str(currency)
+
+    @staticmethod
+    def kraken_pair_mappings(pair):
+        if pair == "btceur":
+            pair = "XXBTZEUR"
+        if pair == "xlmeur":
+            pair = "XXLMZEUR"
+        if pair == "dogeeur":
+            pair = "XDGEUR"
+        if pair == "xrpeur":
+            pair = "XXRPZEUR"
+        return pair
 
     def get_actual_price(self, currency):
         currency_pair = str(currency).lower() + "eur"
@@ -285,7 +298,6 @@ class Kraken:
 
     def buy_limit(self, pair, eur_spend, price=False):
         self.load_key(self.name, "kraken")
-
         if not price:
             price = round(float(self.get_actual_price(pair[:3])[1]) * .999, 2)
         else:
@@ -300,19 +312,43 @@ class Kraken:
                    "type": "buy",
                    "volume": crypto_amount,
                    "pair": str(pair).upper(),
-                   "price": price}
+                   "price": float(price)
+                   }
 
         return self.kraken_api_query("AddOrder", payload)
+
+    def buy_instant(self, pair, eur_spend):
+        self.load_key(self.name, "kraken")
+
+        crypto_amount = round(eur_spend / self.get_actual_price(pair[:3])[1], 8)
+
+        payload = {"ordertype": "market",
+                   "type": "buy",
+                   "volume": crypto_amount,
+                   "pair": str(pair).upper()
+                   }
+
+        return self.kraken_api_query("AddOrder", payload)
+
+    def show_open_orders(self):
+        self.load_key(self.name, "kraken")
+        return self.kraken_api_query("OpenOrders")
+
+    def check_status(self, order_id):
+        self.load_key(self.name, "kraken")
+        payload = {"txid": order_id}
+        return self.kraken_api_query("QueryOrders", payload)["result"][order_id]
+
+    def cancel_order(self, order_id):
+        self.load_key(self.name, "kraken")
+        payload = {"txid": order_id}
+        return self.kraken_api_query("CancelOrder", payload)
 
     def get_balance(self, currency=False):
         self.load_key(self.name, "kraken")
         r = self.kraken_api_query("Balance")
         if currency:
-            try:
-                mapped = self.kraken_currency_mappings(str(currency).lower)
-            except:
-                mapped = currency
-
+            mapped = self.kraken_currency_mappings(str(currency).lower)
             amount = r["result"][f"X{str(mapped).upper()}"]
             return float(amount)
         else:
@@ -326,6 +362,23 @@ class Kraken:
                     else:
                         print(f"{str(currency).upper()}: {amount}")
         return r
+
+    def get_amount_bought(self, currency, order_id):
+        self.load_key(self.name, "kraken")
+        payload = {"txid": order_id}
+        return self.kraken_api_query("QueryOrders", payload)["result"][order_id]["vol_exec"]
+
+    def show_transactions(self, pair):
+        self.load_key(self.name, "kraken")
+
+        pair = self.kraken_pair_mappings(pair)
+
+        trades = []
+        r = self.kraken_api_query("TradesHistory")
+        for trade in r["result"]["trades"]:
+            if r["result"]["trades"][trade]["pair"] == str(pair).upper():
+                trades.append(r["result"]["trades"][trade])
+        return trades
 
 class Bitstamp:
     #   https://www.bitstamp.net/api/
@@ -433,9 +486,9 @@ class Bitstamp:
 
         return self.bitstamp_api_query(f"buy/{pair}", payload)
 
-    def buy_instant(self, pair, eur_spent):
+    def buy_instant(self, pair, eur_spend):
         self.load_key(self.name, "bitstamp_buy")
-        payload = {'amount': eur_spent}
+        payload = {'amount': eur_spend}
 
         #{'price': '1.68678',
         # 'amount': '25.00000000',
