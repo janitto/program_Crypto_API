@@ -92,8 +92,9 @@ class Gemini:
             'type': 'exchange limit'
         }
 
-        return self.gemini_api_query("/v1/order/new", payload)
         # {'order_id': '40188486530', 'id': '40188486530', 'symbol': 'btceur', 'exchange': 'gemini', 'avg_execution_price': '0.00', 'side': 'buy', 'type': 'exchange limit', 'timestamp': '1621445270', 'timestampms': 1621445270483, 'is_live': True, 'is_cancelled': False, 'is_hidden': False, 'was_forced': False, 'executed_amount': '0', 'options': ['maker-or-cancel'], 'price': '33472.96', 'original_amount': '0.00014922', 'remaining_amount': '0.00014922'}
+
+        return self.gemini_api_query("/v1/order/new", payload)
 
     def buy_instant(self, pair, eur_spend):
         self.load_key(self.name, "gemini")
@@ -108,7 +109,9 @@ class Gemini:
             'type': 'exchange limit'
         }
 
-        return self.gemini_api_query("/v1/order/new")
+        #{'order_id': '57112684229', 'id': '57112684229', 'symbol': 'etheur', 'exchange': 'gemini', 'avg_execution_price': '2875.75', 'side': 'buy', 'type': 'exchange limit', 'timestamp': '1631275342', 'timestampms': 1631275342118, 'is_live': False, 'is_cancelled': False, 'is_hidden': False, 'was_forced': False, 'executed_amount': '0.001739', 'options': ['immediate-or-cancel'], 'price': '2875.75', 'original_amount': '0.001739', 'remaining_amount': '0'}
+
+        return self.gemini_api_query("/v1/order/new", payload)
 
     def show_open_orders(self):
         self.load_key(self.name, "gemini")
@@ -117,7 +120,7 @@ class Gemini:
     def check_status(self, order_id):
         self.load_key(self.name, "gemini")
         payload = {"order_id": order_id}
-        return self.gemini_api_query("order/status", payload)
+        return self.gemini_api_query("/v1/order/status", payload)
 
     def cancel_order(self, order_id):
         self.load_key(self.name, "gemini")
@@ -206,10 +209,10 @@ class Gemini:
 
         return self.gemini_api_query('/v1/mytrades', payload)[::-1]
 
-    def fill_sheet_file(self, pair):
+    def fill_sheet_file(self, pair, sheetfile):
         crypto = str(pair[:3])
         self.load_key(self.name, "gemini")
-        audit_file = authenticatespreadsheet("Analytics", f"{self.__class__.__name__}({crypto.upper()})")
+        audit_file = authenticatespreadsheet(sheetfile, f"{self.__class__.__name__}({crypto.upper()})")
         num_rows_added = 0
         buys = self.show_transactions(pair)
         last_gemini_transaction = (list(filter(lambda x: x['Provider'] == self.__class__.__name__, audit_file.get_all_records()[-50:]))[-1]['Transaction ID'])
