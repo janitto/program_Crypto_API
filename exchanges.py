@@ -594,9 +594,9 @@ class Bitstamp:
         payload = {'offset': '0', 'limit': 100, 'sort': 'asc'}
         return self.bitstamp_api_query(f"user_transactions/{pair}", payload)
 
-    def fill_sheet_file(self, pair):
+    def fill_sheet_file(self, pair, sheetfile):
         crypto = str(pair[:3])
-        audit_file = authenticatespreadsheet("Analytics", f"{self.__class__.__name__}({crypto.upper()})")
+        audit_file = authenticatespreadsheet(sheetfile, f"{self.__class__.__name__}({crypto.upper()})")
         transactions = self.show_transactions(pair)
         last_bitstamp_transaction = (list(filter(lambda x: x['Provider'] == self.__class__.__name__, audit_file.get_all_records()[-50:]))[-1]['Transaction ID'])
         num_rows_added = 0
