@@ -285,13 +285,14 @@ class Kraken:
         return pair
 
     def get_actual_price(self, currency):
+        # available: trx, dot,
         currency_pair = str(currency).lower() + "eur"
         payload = {'pair': currency_pair.upper()}
         payload = urlencode(payload)
         try:
             price = requests.get(f"https://api.kraken.com/0/public/Ticker?{payload}").json()
+            #currency_pair = f"x{self.kraken_currency_mappings(currency)}zeur"
 
-            currency_pair = f"x{self.kraken_currency_mappings(currency)}zeur"
             buy = float(price["result"][currency_pair.upper()]["a"][0])
             sell = float(price["result"][currency_pair.upper()]["b"][0])
         except:
@@ -317,7 +318,6 @@ class Kraken:
                    "pair": str(pair).upper(),
                    "price": float(price)
                    }
-
         return self.kraken_api_query("AddOrder", payload)
 
     def buy_instant(self, pair, eur_spend):
