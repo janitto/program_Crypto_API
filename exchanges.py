@@ -282,17 +282,17 @@ class Kraken:
             pair = "XDGEUR"
         if pair == "xrpeur":
             pair = "XXRPZEUR"
+        if pair == "ltceur":
+            pair = "XLTCZEUR"
         return pair
 
     def get_actual_price(self, currency):
-        # available: trx, dot,
         currency_pair = str(currency).lower() + "eur"
         payload = {'pair': currency_pair.upper()}
         payload = urlencode(payload)
         try:
             price = requests.get(f"https://api.kraken.com/0/public/Ticker?{payload}").json()
-            #currency_pair = f"x{self.kraken_currency_mappings(currency)}zeur"
-
+            currency_pair = self.kraken_pair_mappings(currency_pair)
             buy = float(price["result"][currency_pair.upper()]["a"][0])
             sell = float(price["result"][currency_pair.upper()]["b"][0])
         except:
@@ -301,15 +301,16 @@ class Kraken:
         return buy, sell
 
     def buy_limit(self, pair, eur_spend, price=False):
+        pair_base = str(pair).replace("eur", "")
         self.load_key(self.name, "kraken")
         if not price:
-            price = round(float(self.get_actual_price(pair[:3])[1]) * .999, 2)
+            price = round(float(self.get_actual_price(pair_base)[1]) * .999, 2)
         else:
             price = price
         crypto_amount = round((eur_spend * .999) / float(price), 8)
 
-        first = self.kraken_currency_mappings(pair[:3])
-        second = self.kraken_currency_mappings(pair[3:])
+        first = self.kraken_currency_mappings(pair_base)
+        second = self.kraken_currency_mappings(pair[-3:])
         pair = first + second
 
         payload = {"ordertype": "limit",
@@ -321,9 +322,14 @@ class Kraken:
         return self.kraken_api_query("AddOrder", payload)
 
     def buy_instant(self, pair, eur_spend):
+        pair_base = str(pair).replace("eur", "")
         self.load_key(self.name, "kraken")
 
-        crypto_amount = round(eur_spend / self.get_actual_price(pair[:3])[1], 8)
+        crypto_amount = round(eur_spend / self.get_actual_price(pair_base)[1], 8)
+
+        first = self.kraken_currency_mappings(pair_base)
+        second = self.kraken_currency_mappings(pair[-3:])
+        pair = first + second
 
         payload = {"ordertype": "market",
                    "type": "buy",
