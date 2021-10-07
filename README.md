@@ -10,13 +10,13 @@ Hello, this is a toolkit for using functiones of crypto exchanges **Bitstamp**, 
 git clone https://github.com/janitto/program_Crypto_API.git
 ```
 
-Install requirements.txt
+Install modules:
 
 ```python
 pip install requests, gspread, oauth2client
 ```
 
-Configure personal metadata in the file: "*program_Crypto_API/trading_bots/meta_login_example.json*" and replace word *example* with your name.
+Configure personal metadata in the file: "*program_Crypto_API/meta_login_example.json*" and replace word *example* with your name.
 
 ## Usage
 List of Exchanges included in the package:
