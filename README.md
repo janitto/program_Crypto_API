@@ -13,7 +13,7 @@ git clone https://github.com/janitto/program_Crypto_API.git
 Install requirements.txt
 
 ```python
-pip install -r requirements.txt
+pip install requests, gspread, oauth2client
 ```
 
 Configure personal metadata in the file: "*program_Crypto_API/trading_bots/meta_login_example.json*" and replace word *example* with your name.
