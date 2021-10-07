@@ -1,21 +1,9 @@
 {
-  "bitstamp_buy": {
+  "bitstamp": {
     "api_key": "123exampleAPI456publicKey789",
     "api_secret": "THIS321is456SecterKEy789"
     },
-  "bitstamp_sell": {
-    "api_key": "123exampleAPI456publicKey789",
-    "api_secret": "THIS321is456SecterKEy789"
-    },
-  "bitstamp_balance": {
-    "api_key": "123exampleAPI456publicKey789",
-    "api_secret": "THIS321is456SecterKEy789"
-    },
-  "bitstamp_cancel": {
-    "api_key": "123exampleAPI456publicKey789",
-    "api_secret": "THIS321is456SecterKEy789"
-  },
-  "kraken_balance": {
+  "kraken": {
     "api_key": "123exampleAPI456publicKey789+41jy/Am7th1o1",
     "api_secret": "THIS321is456SecterKEy789"
   },

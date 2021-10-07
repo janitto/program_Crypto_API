@@ -478,7 +478,7 @@ class Bitstamp:
         return float(price["bid"]), float(price["ask"])
 
     def buy_limit(self, pair, eur_spend, price=False):
-        self.load_key(self.name, "bitstamp_buy")
+        self.load_key(self.name, "bitstamp")
         if not price:
             price = round(float(self.get_actual_price(pair[:3])[1]) * .999, 2)
         else:
@@ -496,7 +496,7 @@ class Bitstamp:
         return self.bitstamp_api_query(f"buy/{pair}", payload)
 
     def buy_instant(self, pair, eur_spend):
-        self.load_key(self.name, "bitstamp_buy")
+        self.load_key(self.name, "bitstamp")
         payload = {'amount': eur_spend}
 
         #{'price': '1.68678',
@@ -508,7 +508,7 @@ class Bitstamp:
         return self.bitstamp_api_query(f"buy/instant/{pair}", payload)
 
     def show_open_orders(self):
-        self.load_key(self.name, "bitstamp_cancel")
+        self.load_key(self.name, "bitstamp")
 
         # [{'price': '0.80000',
         #   'currency_pair': 'GRT/EUR',
@@ -520,7 +520,7 @@ class Bitstamp:
         return self.bitstamp_api_query("open_orders/all")
 
     def check_status(self, order_id):
-        self.load_key(self.name, "bitstamp_balance")
+        self.load_key(self.name, "bitstamp")
         payload = {'id': order_id}
 
         #{'status': 'Canceled',
@@ -531,7 +531,7 @@ class Bitstamp:
         return self.bitstamp_api_query("order_status", payload)
 
     def cancel_order(self, order_id):
-        self.load_key(self.name, "bitstamp_cancel")
+        self.load_key(self.name, "bitstamp")
         payload = {'id': order_id}
 
         #{'price': 20000,
@@ -543,7 +543,7 @@ class Bitstamp:
         return self.bitstamp_api_query("cancel_order", payload)
 
     def get_balance(self, currency=False):
-        self.load_key(self.name, "bitstamp_balance")
+        self.load_key(self.name, "bitstamp")
         r = self.bitstamp_api_query("balance")
         if currency:
             amount = r[f"{currency}_available"]
@@ -562,7 +562,7 @@ class Bitstamp:
             return r
 
     def get_amount_bought(self, currency, order_id):
-        self.load_key(self.name, "bitstamp_balance")
+        self.load_key(self.name, "bitstamp")
         payload = {'id': order_id}
         r = self.bitstamp_api_query("order_status", payload)
         if r["status"] == "Finished" or r["status"] == "Canceled":
@@ -586,7 +586,7 @@ class Bitstamp:
         amount = truncate(amount-fee, decimals=6)
 
         if amount > 0:
-            self.load_key(self.name, "bitstamp_withdraw")
+            self.load_key(self.name, "bitstamp")
             payload = {'amount': amount, 'address': address}
 
             #{'id': 12049423}
@@ -596,7 +596,7 @@ class Bitstamp:
             return {"message": f"No {str(currency_to_withdraw).upper()} to withdraw."}
 
     def show_transactions(self, pair):
-        self.load_key(self.name, "bitstamp_balance")
+        self.load_key(self.name, "bitstamp")
         payload = {'offset': '0', 'limit': 100, 'sort': 'asc'}
         return self.bitstamp_api_query(f"user_transactions/{pair}", payload)
 
@@ -614,7 +614,7 @@ class Bitstamp:
         return num_rows_added
 #---------------------------
     def sell_limit(self, pair, amount, price):
-        self.load_key(self.name, "bitstamp_sell")
+        self.load_key(self.name, "bitstamp")
         timestamp, nonce, content_type = self.get_timestamp_nonce()
         payload = {'amount': amount, 'price': price}
         payload_string = urlencode(payload)
@@ -665,7 +665,7 @@ class Bitstamp:
         return r
 
     def sell_instant(self, pair, amount):
-        self.load_key(self.name, "bitstamp_sell")
+        self.load_key(self.name, "bitstamp")
         timestamp, nonce, content_type = self.get_timestamp_nonce()
         payload = {'amount': amount}
         payload_string = urlencode(payload)
