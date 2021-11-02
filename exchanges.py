@@ -13,25 +13,6 @@ from datetime import datetime
 import base64
 import sqlite3
 
-def init_db(db_file):
-        create_projects_table = """ CREATE TABLE IF NOT EXISTS trades (
-                                            id integer PRIMARY KEY ,
-                                            date text,
-                                            internal_id int UNIQUE,
-                                            provider text,
-                                            type text,
-                                            quantity float,
-                                            price float,
-                                            eur_spent,
-                                            fee float,
-                                            currency text
-                                        ); """
-
-        conn = sqlite3.connect(db_file)
-        cursor = conn.cursor()
-        cursor.execute(create_projects_table)
-        return conn
-
 class Gemini:
     #   https://docs.gemini.com/rest-api/
 
@@ -40,7 +21,7 @@ class Gemini:
         self.key = ""
         self.secret = ""
         self.uri = "https://api.gemini.com"
-        self.insert_values_query = '''INSERT INTO trades (date,internal_id,provider,type,quantity,price,eur_spent,fee,currency) VALUES (?,?,?,?,?,?,?,?,?)'''
+        self.insert_values_query = '''INSERT or IGNORE into trades (date,internal_id,provider,type,quantity,price,eur_spent,fee,currency) VALUES (?,?,?,?,?,?,?,?,?)'''
         self.dbconn = init_db("trades.db")
 
     def load_key(self, name, action):
@@ -259,6 +240,8 @@ class Kraken:
         self.secret = ""
         self.uri = "https://api.kraken.com"
         self.apiversion = "0"
+        self.insert_values_query = '''INSERT INTO trades (date,internal_id,provider,type,quantity,price,eur_spent,fee,currency) VALUES (?,?,?,?,?,?,?,?,?)'''
+        self.dbconn = init_db("trades.db")
 
     def load_key(self, name, action):
         if name:
@@ -427,6 +410,8 @@ class Bitstamp:
         self.secret = b""
         self.uri = 'https://www.bitstamp.net/api'
         self.apiversion = 'v2'
+        self.insert_values_query = '''INSERT or IGNORE into trades (date,internal_id,provider,type,quantity,price,eur_spent,fee,currency) VALUES (?,?,?,?,?,?,?,?,?)'''
+        self.dbconn = init_db("trades.db")
 
     def load_key(self, name, action):
         if name:
@@ -630,6 +615,9 @@ class Bitstamp:
         return self.bitstamp_api_query(f"user_transactions/{pair}", payload)
 
     def fill_sheet_file(self, pair, sheetfile):
+
+        cursor = self.dbconn.cursor()
+
         crypto = str(pair[:3])
         audit_file = authenticatespreadsheet(sheetfile, f"{self.__class__.__name__}({crypto.upper()})")
         transactions = self.show_transactions(pair)
@@ -637,9 +625,14 @@ class Bitstamp:
         num_rows_added = 0
         for transaction in transactions:
             if transaction['id'] > last_bitstamp_transaction:
-                audit_file.append_row(get_transaction_details_bitstamp(transaction, crypto, source=self.__class__.__name__), value_input_option="USER_ENTERED")
+                data = get_transaction_details_bitstamp(transaction, crypto, source=self.__class__.__name__)
+                #audit_file.append_row(data, value_input_option="USER_ENTERED")
+                data.append(crypto.upper())
+                cursor.execute(self.insert_values_query, tuple(data))
                 num_rows_added += 1
                 time.sleep(0.5)
+
+        self.dbconn.commit()
         return num_rows_added
 #---------------------------
     def sell_limit(self, pair, amount, price):
@@ -721,6 +714,24 @@ class Bitstamp:
         r = requests.post(f"{self.uri}/{self.apiversion}/sell/instant/{pair}/", headers=headers, data=payload_string)
         return r.json()
 
+def init_db(db_file):
+    create_projects_table = """ CREATE TABLE IF NOT EXISTS trades (
+                                        id integer PRIMARY KEY ,
+                                        date text,
+                                        internal_id int UNIQUE,
+                                        provider text,
+                                        type text,
+                                        quantity float,
+                                        price float,
+                                        eur_spent,
+                                        fee float,
+                                        currency text
+                                    ); """
+
+    conn = sqlite3.connect(db_file)
+    cursor = conn.cursor()
+    cursor.execute(create_projects_table)
+    return conn
 
 def send_mail(crypto, price, action, body):
 
