@@ -11,6 +11,26 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
 import base64
+import sqlite3
+
+def init_db(db_file):
+        create_projects_table = """ CREATE TABLE IF NOT EXISTS trades (
+                                            id integer PRIMARY KEY ,
+                                            date text,
+                                            internal_id int UNIQUE,
+                                            provider text,
+                                            type text,
+                                            quantity float,
+                                            price float,
+                                            eur_spent,
+                                            fee float,
+                                            currency text
+                                        ); """
+
+        conn = sqlite3.connect(db_file)
+        cursor = conn.cursor()
+        cursor.execute(create_projects_table)
+        return conn
 
 class Gemini:
     #   https://docs.gemini.com/rest-api/
@@ -20,6 +40,8 @@ class Gemini:
         self.key = ""
         self.secret = ""
         self.uri = "https://api.gemini.com"
+        self.insert_values_query = '''INSERT INTO trades (date,internal_id,provider,type,quantity,price,eur_spent,fee,currency) VALUES (?,?,?,?,?,?,?,?,?)'''
+        self.dbconn = init_db("trades.db")
 
     def load_key(self, name, action):
         if name:
@@ -93,7 +115,6 @@ class Gemini:
         }
 
         # {'order_id': '40188486530', 'id': '40188486530', 'symbol': 'btceur', 'exchange': 'gemini', 'avg_execution_price': '0.00', 'side': 'buy', 'type': 'exchange limit', 'timestamp': '1621445270', 'timestampms': 1621445270483, 'is_live': True, 'is_cancelled': False, 'is_hidden': False, 'was_forced': False, 'executed_amount': '0', 'options': ['maker-or-cancel'], 'price': '33472.96', 'original_amount': '0.00014922', 'remaining_amount': '0.00014922'}
-
         return self.gemini_api_query("/v1/order/new", payload)
 
     def buy_instant(self, pair, eur_spend):
@@ -210,6 +231,9 @@ class Gemini:
         return self.gemini_api_query('/v1/mytrades', payload)[::-1]
 
     def fill_sheet_file(self, pair, sheetfile):
+
+        cursor = self.dbconn.cursor()
+
         crypto = str(pair[:3])
         self.load_key(self.name, "gemini")
         audit_file = authenticatespreadsheet(sheetfile, f"{self.__class__.__name__}({crypto.upper()})")
@@ -218,8 +242,13 @@ class Gemini:
         last_gemini_transaction = (list(filter(lambda x: x['Provider'] == self.__class__.__name__, audit_file.get_all_records()[-50:]))[-1]['Transaction ID'])
         for buy in buys:
             if buy['tid'] > last_gemini_transaction:
-                audit_file.append_row(get_transaction_details_gemini(buy, source=self.__class__.__name__), value_input_option="USER_ENTERED")
+                data = get_transaction_details_gemini(buy, source=self.__class__.__name__)
+                audit_file.append_row(data, value_input_option="USER_ENTERED")
+                data.append(crypto.upper())
+                cursor.execute(self.insert_values_query, tuple(data))
                 num_rows_added += 1
+
+        self.dbconn.commit()
         return num_rows_added
 
 class Kraken:
@@ -304,7 +333,7 @@ class Kraken:
         pair_base = str(pair).replace("eur", "")
         self.load_key(self.name, "kraken")
         if not price:
-            price = round(float(self.get_actual_price(pair_base)[1]) * .999, 2)
+            price = round(float(self.get_actual_price(pair_base)[1]) * .999, 3)
         else:
             price = price
         crypto_amount = round((eur_spend * .999) / float(price), 8)
