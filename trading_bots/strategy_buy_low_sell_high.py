@@ -9,16 +9,18 @@ import datetime
 
 parser = argparse.ArgumentParser()
 parser.add_argument('currency', type=str, help="Define currency to trade.")
+parser.add_argument('threshold', type=float, help="Threshold of trading.")
 args = parser.parse_args()
 
 curr = args.currency
+threshold = args.threshold
 
 logging.basicConfig(filename=f"{curr}_content_log.log",
                     filemode="a",
                     format="%(asctime)s - %(message)s",
                     level="INFO")
 
-THRESHOLD_BUY = 0.05                        #decimal format of % which if decrease, then buy
+THRESHOLD_BUY = threshold                   #decimal format of % which if decrease, then buy
 THRESHOLD_SELL = 0.1                        #decimal format of % which if increase, then sell
 INVESTMENT = 20                             #investment in EUR
 CHECK_INTERVAL = 300                        #interval of price check in seconds

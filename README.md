@@ -6,67 +6,86 @@ Hello, this is a toolkit for using functiones of crypto exchanges **Bitstamp**, 
 
 [Clone](https://github.com/git-guides/git-clone) the repository.
 
-```bash
+``` bash
 git clone https://github.com/janitto/program_Crypto_API.git
 ```
 
 Install modules:
 
-```python
-pip install requests, gspread, oauth2client
+``` python
+pip install requests, gspread, oauth2client, flask, flask-RESTful, markdown2
 ```
 
-Configure personal metadata in the file: "*program_Crypto_API/meta_login_example.json*" and replace word *example* with your name.
+Download [NGROK](https://ngrok.com/download). Utility for tunneling your ports to internet.
+
+Configure personal metadata in the file: "*program_Crypto_API/meta_login_example.json*" and replace a word *example* with your name.
 
 ## Usage
+
 List of Exchanges included in the package:
+
 * Gemini
 * Bitstamp
 * Kraken
 
+Run the _"crypto_api.py"_ in the background.
+``` bash
+nohup crypto_api.py &
+```
+
+Run the ngrok
+``` bash
+ngrok http -auth "username:password" -region=eu 7777
+```
+
 ## Functions
+
 Same functions are available across each exchange.
 
-```python
+``` python
 from exchanges import Gemini, Kraken, Bitstamp
 
-exchange= Gemini("example")
-exchange= Bitstamp("example")
-exchange= Kraken("example")
 
-# list of functions
-a = exchange.get_actual_price("btc")
-b = exchange.buy_limit("btceur", 5, 39000)
-c = exchange.buy_instant("btceur", 5)
-d = exchange.show_open_orders()
-e = exchange.check_status(123456789)
-f = exchange.cancel_oder(123456789)
-g = exchange.get_balance()
-h = exchange.get_amount_bought(123456789)
-i = exchange.withdraw_to_wallet("btc")
-j = exchange.show_transactions("btc")
-k = exchange.fill_sheet_file("btc")
+exchange= Gemini("example")  
+exchange= Bitstamp("example")  
+exchange= Kraken("example")  
+```
+
+## List of functions
+
+``` python
+a = exchange.get_actual_price("btc")  
+b = exchange.buy_limit("btceur", 5, 39000)  
+c = exchange.buy_instant("btceur", 5)  
+d = exchange.show_open_orders()  
+e = exchange.check_status(123456789)  
+f = exchange.cancel_oder(123456789)  
+g = exchange.get_balance()  
+h = exchange.get_amount_bought(123456789)  
+i = exchange.withdraw_to_wallet("btc")  
+j = exchange.show_transactions("btc")  
+k = exchange.fill_sheet_file("btc")  
 ```
 
 ## Currently implemented
 
-|  | Gemini  |Bitstamp | Kraken |
-| ------------- | :-------------: | :-------------: | :-------------: |
-| get_actual_price  | OK | OK | OK |
-| buy_limit         | OK | OK | OK |
-| buy_instant       | OK | OK | OK |
-| show_open_orders  | OK | OK | OK |
-| check_status      | OK | OK | OK |
-| cancel_oder       | OK | OK | OK |
-| get_balance       | OK | OK | OK |
-| get_amount_bought | OK | OK | OK |
-| withdraw_to_wallet| * | OK |   |
-| show_transactions | OK | OK | OK |
-| fill_sheet_file   | OK | * |   |
-
+|  | Gemini  |Bitstamp | Kraken |  |
+| ------------- | :-------------: | :-------------: | :-------------: | :-------------: |
+| get_actual_price  | OK | OK | OK |   |
+| buy_limit         | OK | OK | OK |   |
+| buy_instant       | OK | OK | OK |   |
+| show_open_orders  | OK | OK | OK |   |
+| check_status      | OK | OK | OK |   |
+| cancel_oder       | OK | OK | OK |   | 
+| get_balance       | OK | OK | OK |  |
+| get_amount_bought | OK | OK | OK |   |
+| withdraw_to_wallet| * | OK |   |   |
+| show_transactions | OK | OK | OK |  |
+| fill_sheet_file   | OK | * |   |   |
+| REST API | [balance](/balance/gemini) / [transactions](/transactions/gemini/btceur?since=01-10-2021) | [balance](/balance/bitstamp) / [transactions](/transactions/bitstamp/btceur?since=01-10-2021) | [balance](/balance/kraken) / [transactions](/transactions/kraken/btceur?since=01-10-2021) |
 ## Strategies
 
-### dollar_cost_average.py (action="" spend_eur="" crypto="")
+### 1. dollar_cost_average.py (action="" spend_eur="" crypto="")
 
 Strategy for periodical buys auditing and withdrawing of crypto from exchanges.
 
@@ -76,16 +95,20 @@ Strategy for periodical buys auditing and withdrawing of crypto from exchanges.
 **crpto(str)** -> symbol of crypto  
 
 Example:  
-dollar_cost_average.py "buy" 5 "btc"  
-dollar_cost_average.py "audit" "btc"  
-dollar_cost_average.py "withdraw" "btc"  
+
+``` bash
+nohup dollar_cost_average.py "buy" 5 "btc" &
+nohup dollar_cost_average.py "audit" "btc" &
+nohup dollar_cost_average.py "withdraw" "btc" &
+```
+ 
 
 Set up a kron job with defined parameters to enjoy DCA.
 
-(for audit configure connection to google spreadsheets)  
+(for an audit configure connection to google spreadsheets)  
 (for withdraw enter your public addresses to metadata)
 
-### trailing_stop_sell.py (currency="" amount="" trailing="")
+### 2. trailing_stop_sell.py (currency="" amount="" trailing="")
 
 Strategy for setting a guaranteed minimal sell price, which will automatically increase, if price of crypto increase.
 
@@ -93,19 +116,26 @@ Strategy for setting a guaranteed minimal sell price, which will automatically i
 **amount(float)** -> amount of crypto to be sold  
 **trailing(float)** -> if price drops by more than stated %, sell is initiated.  
 
-Example:  
+``` bash
 trailing_stop_sell.py "ltc" 1 10
+```
 
-Let's say current price of LTC is 120 € /LTC, and you execute command above.
-Trailing price is set to 120*10% = 12 €
-If price of LTC decrease to 108 €, 1 LTC is sold.
-If price of LTC increase to 130 €, trailing threshold (currently 108 €) will be increased to 118 € (130 € - 12 €).
-If price of LTC drop then to 120 €, nothing will happen, but if drops to 118 €, 1 LTC is sold.
+Let's say current price of LTC is 120 EUR /LTC, and you execute command above.
+Trailing price is set to 120*10% = 12 EUR
+If price of LTC decrease to 108 EUR, 1 LTC is sold.
+If price of LTC increase to 130 EUR, trailing threshold (currently 108 EUR) will be increased to 118 EUR (130 EUR - 12 EUR).
+If price of LTC drop then to 120 EUR, nothing will happen, but if drops to 118 EUR, 1 LTC is sold.
 
-### buy_low_sell_high.py (currency="")
+### 3. buy_low_sell_high.py (currency="", threshold="")
 
 Strategy, which buy if price drops by defined threshold and then sell if price increase by defined threshold.
 
 **currency(str)** -> symbol of crypto  
+**threshold(float)** -> threshold % in decimal
 
-(modify global variables in script with values of your choice)
+``` bash
+nohup buy_low_sell_high.py "BAT" 0.05 &
+```
+
+If threshold is set to 0.05, then script will buy crypto if current price is lower by more than threshold.
+Then is sold when crypto increase by same amount.

@@ -1,6 +1,11 @@
 from flask import Flask, request
 from flask_restful import Resource, Api, reqparse, abort
 
+import markdown2 as markdown
+from pygments.formatters import HtmlFormatter
+
+
+
 from exchanges import Gemini, Kraken, Bitstamp
 
 bitstamp = Bitstamp("example")
@@ -22,6 +27,15 @@ defined_exchanges = ["gemini", "bitstamp", "kraken"]
 def abort_if_invalid_exchange(exchange):
     if exchange not in defined_exchanges:
         abort(404, message="Exchange " + exchange + " not included in project. Use Gemini, Kraken or Bitstamp")
+
+@app.route("/")
+def get():
+    with open("README.md", "r") as markdown_file:
+        formatter = HtmlFormatter(style="emacs", full=True, cssclass="codehilite")
+        css_string = formatter.get_style_defs()
+        md_css_string = "<style>" + css_string + "</style>"
+        md_template = md_css_string + markdown.markdown(markdown_file.read(), extras=['fenced-code-blocks', "tables"])
+        return md_template
 
 class HealthCheck(Resource):
 
