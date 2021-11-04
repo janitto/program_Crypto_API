@@ -63,10 +63,9 @@ class ShowBalance(Resource):
                 "currency": currency,
                 "balance": balance}, 200
 
-@app.route("/audit/")
-def audit():
-
-    return gemini.draw_chart()
+@app.route("/audit/<exchange>/<currency>")
+def audit(exchange, currency):
+    return eval(f"{exchange}.draw_chart(\"{currency.upper()}\")")
 
 class ShowTransactions(Resource):
     @staticmethod

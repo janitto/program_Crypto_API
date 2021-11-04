@@ -234,9 +234,18 @@ class Gemini:
         self.dbconn.commit()
         return num_rows_added
 
-    def draw_chart(self):
-        df = pd.read_sql_query("select * from trades", self.dbconn)
-        return df.to_html(index=False)
+    def draw_chart(self, currency):
+        df = pd.read_sql_query(f"select * from trades where provider = \"Gemini\" and currency = \"{currency}\" order by date desc", self.dbconn)
+        return df.style \
+                    .set_caption("List of trades.") \
+                    .format({"quanitiy": "{:20,.6f}",
+                             "price": "{} €",
+                             "eur_spent": "{:20,.2f} €",
+                             "fee": "{:10,.3f} €"}) \
+                    .hide_index() \
+                    .bar(subset=['price', 'quantity'], color='lawngreen') \
+                    .set_properties(**{'border-color': 'black', "border-width": "1px", 'border-style': 'solid'}) \
+                    .render()
 
 class Kraken:
 
@@ -406,6 +415,19 @@ class Kraken:
             if r["result"]["trades"][trade]["pair"] == str(pair).upper():
                 trades.append(r["result"]["trades"][trade])
         return trades
+
+    def draw_chart(self):
+        df = pd.read_sql_query("select * from trades where provider = \"Kraken\"", self.dbconn)
+        return df.style \
+                    .set_caption("List of trades.") \
+                    .format({"quanitiy": "{:10,.6f}",
+                             "price": "{} €",
+                             "eur_spent": "{:10,.2f} €",
+                             "fee": "{:10,.3f} €"}) \
+                    .hide_index() \
+                    .bar(subset=['price', 'quantity'], color='lawngreen') \
+                    .set_properties(**{'border-color': 'black', "border-width": "1px", 'border-style': 'solid'}) \
+                    .render()
 
 class Bitstamp:
     #   https://www.bitstamp.net/api/
