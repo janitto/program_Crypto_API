@@ -69,7 +69,7 @@ k = exchange.fill_sheet_file("btc")
 
 ## Currently implemented
 
-|  | Gemini  |Bitstamp | Kraken |  |
+|  | Gemini  |Bitstamp | Kraken | Audit |
 | ------------- | :-------------: | :-------------: | :-------------: | :-------------: |
 | get_actual_price  | OK | OK | OK |   |
 | buy_limit         | OK | OK | OK |   |
@@ -83,6 +83,7 @@ k = exchange.fill_sheet_file("btc")
 | show_transactions | OK | OK | OK |  |
 | fill_sheet_file   | OK | * |   |   |
 | REST API | [balance](/balance/gemini) / [transactions](/transactions/gemini/btceur?since=01-10-2021) | [balance](/balance/bitstamp) / [transactions](/transactions/bitstamp/btceur?since=01-10-2021) | [balance](/balance/kraken) / [transactions](/transactions/kraken/btceur?since=01-10-2021) |
+| Audit |  |  |  | [show full audit](/audit) |
 ## Strategies
 
 ### 1. dollar_cost_average.py (action="" spend_eur="" crypto="")
@@ -97,9 +98,9 @@ Strategy for periodical buys auditing and withdrawing of crypto from exchanges.
 Example:  
 
 ``` bash
-nohup dollar_cost_average.py "buy" 5 "btc" &
-nohup dollar_cost_average.py "audit" "btc" &
-nohup dollar_cost_average.py "withdraw" "btc" &
+nohup python dollar_cost_average.py "buy" 5 "btc" &
+nohup python dollar_cost_average.py "audit" "btc" &
+nohup python dollar_cost_average.py "withdraw" "btc" &
 ```
  
 
@@ -134,7 +135,7 @@ Strategy, which buy if price drops by defined threshold and then sell if price i
 **threshold(float)** -> threshold % in decimal
 
 ``` bash
-nohup buy_low_sell_high.py "BAT" 0.05 &
+nohup python buy_low_sell_high.py "BAT" 0.05 &
 ```
 
 If threshold is set to 0.05, then script will buy crypto if current price is lower by more than threshold.

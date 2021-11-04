@@ -12,6 +12,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
 import base64
 import sqlite3
+import pandas as pd
 
 class Gemini:
     #   https://docs.gemini.com/rest-api/
@@ -228,9 +229,14 @@ class Gemini:
                 data.append(crypto.upper())
                 cursor.execute(self.insert_values_query, tuple(data))
                 num_rows_added += 1
+                time.sleep(0.5)
 
         self.dbconn.commit()
         return num_rows_added
+
+    def draw_chart(self):
+        df = pd.read_sql_query("select * from trades", self.dbconn)
+        return df.to_html(index=False)
 
 class Kraken:
 
@@ -728,14 +734,14 @@ def init_db(db_file):
                                         currency text
                                     ); """
 
-    conn = sqlite3.connect(db_file)
+    conn = sqlite3.connect(db_file, check_same_thread=False)
     cursor = conn.cursor()
     cursor.execute(create_projects_table)
     return conn
 
 def send_mail(crypto, price, action, body):
 
-    with open(f"trading_bots/meta_login_example.json") as login:
+    with open(f"meta_login_example.json") as login:
         data = json.load(login)
         gmail_username = data["gmail"]["email"]
         gmail_password = data["gmail"]["password"]

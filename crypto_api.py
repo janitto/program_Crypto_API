@@ -9,7 +9,7 @@ from pygments.formatters import HtmlFormatter
 from exchanges import Gemini, Kraken, Bitstamp
 
 bitstamp = Bitstamp("example")
-gemini = Gemini("example")
+gemini = Gemini("jany")
 kraken = Kraken("example")
 
 
@@ -37,11 +37,9 @@ def get():
         md_template = md_css_string + markdown.markdown(markdown_file.read(), extras=['fenced-code-blocks', "tables"])
         return md_template
 
-class HealthCheck(Resource):
-
-    @staticmethod
-    def get():
-        return {"status": "UP"}, 200
+@app.route("/healthcheck")
+def healthcheck():
+    return {"status": "UP"}, 200
 
 class ShowBalance(Resource):
     @staticmethod
@@ -64,6 +62,11 @@ class ShowBalance(Resource):
         return {'exchange': exchange,
                 "currency": currency,
                 "balance": balance}, 200
+
+@app.route("/audit/")
+def audit():
+
+    return gemini.draw_chart()
 
 class ShowTransactions(Resource):
     @staticmethod
@@ -100,7 +103,6 @@ class ShowTransactions(Resource):
                 return valid_transactions
         return transactions, 200
 
-api.add_resource(HealthCheck, "/healthcheck")
 api.add_resource(ShowBalance, '/balance/<exchange>')
 api.add_resource(ShowTransactions, '/transactions/<exchange>/<pair>')
 
