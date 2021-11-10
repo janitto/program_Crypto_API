@@ -235,7 +235,7 @@ class Gemini:
         return num_rows_added
 
     def draw_chart(self, currency):
-        df = pd.read_sql_query(f"select * from trades where provider = \"Gemini\" and currency = \"{currency}\" order by date desc", self.dbconn)
+        df = pd.read_sql_query(f"select * from trades where provider = \"Gemini\" and currency = \"{currency.upper()}\" order by date desc", self.dbconn)
         return df.style \
                     .set_caption("List of trades.") \
                     .format({"quanitiy": "{:20,.6f}",
@@ -416,13 +416,13 @@ class Kraken:
                 trades.append(r["result"]["trades"][trade])
         return trades
 
-    def draw_chart(self):
-        df = pd.read_sql_query("select * from trades where provider = \"Kraken\"", self.dbconn)
+    def draw_chart(self, currency):
+        df = pd.read_sql_query(f"select * from trades where provider = \"Kraken\" and currency = \"{currency}\" order by date desc", self.dbconn)
         return df.style \
                     .set_caption("List of trades.") \
-                    .format({"quanitiy": "{:10,.6f}",
+                    .format({"quanitiy": "{:20,.6f}",
                              "price": "{} €",
-                             "eur_spent": "{:10,.2f} €",
+                             "eur_spent": "{:20,.2f} €",
                              "fee": "{:10,.3f} €"}) \
                     .hide_index() \
                     .bar(subset=['price', 'quantity'], color='lawngreen') \

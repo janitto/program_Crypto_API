@@ -13,7 +13,8 @@ git clone https://github.com/janitto/program_Crypto_API.git
 Install modules:
 
 ``` python
-pip install requests, gspread, oauth2client, flask, flask-RESTful, markdown2
+pip install requests, gspread, oauth2client, pandas
+pip install flask, flask-restful, markdown2, pygments
 ```
 
 Download [NGROK](https://ngrok.com/download). Utility for tunneling your ports to internet.
@@ -83,7 +84,7 @@ k = exchange.fill_sheet_file("btc")
 | show_transactions | OK | OK | OK |  |
 | fill_sheet_file   | OK | * |   |   |
 | REST API | [balance](/balance/gemini) / [transactions](/transactions/gemini/btceur?since=01-10-2021) | [balance](/balance/bitstamp) / [transactions](/transactions/bitstamp/btceur?since=01-10-2021) | [balance](/balance/kraken) / [transactions](/transactions/kraken/btceur?since=01-10-2021) |
-| Audit |  |  |  | [show full audit](/audit) |
+| Audit | [Gemini audit](/audit/gemini/btc) | [Bitstamp audit](/audit/bitstamp/btc) | [Kraken audit](/audit/kraken/btc) |  |
 ## Strategies
 
 ### 1. dollar_cost_average.py (action="" spend_eur="" crypto="")
