@@ -13,8 +13,8 @@ git clone https://github.com/janitto/program_Crypto_API.git
 Install modules:
 
 ``` python
-pip install requests, gspread, oauth2client, pandas
-pip install flask, flask-restful, markdown2, pygments
+pip install requests gspread oauth2client pandas
+pip install flask flask-restful markdown2 pygments
 ```
 
 Download [NGROK](https://ngrok.com/download). Utility for tunneling your ports to internet.

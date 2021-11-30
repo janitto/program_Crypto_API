@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from exchanges import Gemini, Bitstamp, Kraken
+from ..exchanges import Gemini, Bitstamp, Kraken
 import argparse
 import logging
 from time import sleep

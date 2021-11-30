@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from exchanges import Bitstamp, Kraken, Gemini, send_mail
+from ..exchanges import Bitstamp, Kraken, Gemini, send_mail
 from statistics import mean
 from time import sleep
 import logging
