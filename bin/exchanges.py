@@ -24,12 +24,11 @@ class Gemini:
         self.secret = ""
         self.uri = "https://api.gemini.com"
         self.insert_values_query = '''INSERT or IGNORE into trades (date,internal_id,provider,type,quantity,price,eur_spent,fee,currency) VALUES (?,?,?,?,?,?,?,?,?)'''
-        self.dbconn = init_db("trades.db")
+        self.dbconn = init_db("bin/trades.db")
 
     def load_key(self, name, action):
         if name:
-            path = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
-            with open(f"{path}/meta_login_{name}.json") as login:
+            with open(f"bin/meta_login_{name}.json") as login:
                 data = json.load(login)
                 self.key = data[action]["api_key"]
                 self.secret = data[action]["api_secret"]
@@ -258,12 +257,11 @@ class Kraken:
         self.uri = "https://api.kraken.com"
         self.apiversion = "0"
         self.insert_values_query = '''INSERT INTO trades (date,internal_id,provider,type,quantity,price,eur_spent,fee,currency) VALUES (?,?,?,?,?,?,?,?,?)'''
-        self.dbconn = init_db("trades.db")
+        self.dbconn = init_db("bin/trades.db")
 
     def load_key(self, name, action):
         if name:
-            path = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
-            with open(f"{path}/meta_login_{name}.json") as login:
+            with open(f"bin/meta_login_{name}.json") as login:
                 data = json.load(login)
                 self.key = data[action]["api_key"]
                 self.secret = data[action]["api_secret"]
@@ -442,12 +440,11 @@ class Bitstamp:
         self.uri = 'https://www.bitstamp.net/api'
         self.apiversion = 'v2'
         self.insert_values_query = '''INSERT or IGNORE into trades (date,internal_id,provider,type,quantity,price,eur_spent,fee,currency) VALUES (?,?,?,?,?,?,?,?,?)'''
-        self.dbconn = init_db("trades.db")
+        self.dbconn = init_db("bin/trades.db")
 
     def load_key(self, name, action):
         if name:
-            path = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
-            with open(f"{path}/meta_login_{name}.json") as login:
+            with open(f"bin/meta_login_{name}.json") as login:
                 data = json.load(login)
                 self.key = data[action]["api_key"]
                 self.secret = bytes(data[action]["api_secret"], encoding='utf-8')
