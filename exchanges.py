@@ -13,6 +13,7 @@ from datetime import datetime
 import base64
 import sqlite3
 import pandas as pd
+import os
 
 class Gemini:
     #   https://docs.gemini.com/rest-api/
@@ -27,7 +28,8 @@ class Gemini:
 
     def load_key(self, name, action):
         if name:
-            with open(f"meta_login_{name}.json") as login:
+            path = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
+            with open(f"{path}/meta_login_{name}.json") as login:
                 data = json.load(login)
                 self.key = data[action]["api_key"]
                 self.secret = data[action]["api_secret"]
@@ -260,7 +262,8 @@ class Kraken:
 
     def load_key(self, name, action):
         if name:
-            with open(f"meta_login_{name}.json") as login:
+            path = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
+            with open(f"{path}/meta_login_{name}.json") as login:
                 data = json.load(login)
                 self.key = data[action]["api_key"]
                 self.secret = data[action]["api_secret"]
@@ -443,7 +446,8 @@ class Bitstamp:
 
     def load_key(self, name, action):
         if name:
-            with open(f"meta_login_{name}.json") as login:
+            path = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
+            with open(f"{path}/meta_login_{name}.json") as login:
                 data = json.load(login)
                 self.key = data[action]["api_key"]
                 self.secret = bytes(data[action]["api_secret"], encoding='utf-8')
