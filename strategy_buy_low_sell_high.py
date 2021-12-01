@@ -9,23 +9,24 @@ import datetime
 
 parser = argparse.ArgumentParser()
 parser.add_argument('currency', type=str, help="Define currency to trade.")
-parser.add_argument('threshold', type=float, help="Threshold of trading.")
+parser.add_argument('buyif', type=float, help="Buy if price decrease %")
+parser.add_argument('sellif', type=float, help="TSell if price rise %")
 args = parser.parse_args()
-
 curr = args.currency
-threshold = args.threshold
+buyif = args.buyif
+sellif = args.sellif
 
-logging.basicConfig(filename=f"{curr}_content_log.log",
+logging.basicConfig(filename=f"logs/{curr}_content_log.log",
                     filemode="a",
                     format="%(asctime)s - %(message)s",
                     level="INFO")
 
-THRESHOLD_BUY = threshold                   #decimal format of % which if decrease, then buy
-THRESHOLD_SELL = 0.1                        #decimal format of % which if increase, then sell
+THRESHOLD_BUY = buyif                       #decimal format of % which if decrease, then buy
+THRESHOLD_SELL = sellif                     #decimal format of % which if increase, then sell
 INVESTMENT = 20                             #investment in EUR
 CHECK_INTERVAL = 300                        #interval of price check in seconds
 TURNAROUND_PERIOD = 86400                   #86400 seconds is 1 day
-EXCHANGE_FEE = 0.000                        #fee for trade
+EXCHANGE_FEE = 0.00                         #fee for trade %
 EXCHANGE_COMMISION = 1 - EXCHANGE_FEE	    #remainer after deducing fee
 
 exchange = Bitstamp(name="example")
@@ -92,7 +93,7 @@ def start_bot(currency, total_investments=3):
                           f"Earned: {round(zarobene,3)} EUR\n"
                           f"TransID: {transaction_id}")
 
-                with open("earnings.csv", "a") as f:
+                with open("logs/earnings.csv", "a") as f:
                     f.write(f"{datetime.datetime.now().strftime('%X')},{currency},{min(kupene)},{kurz_predaja},{round(zarobene,3)},{transaction_id}\n")
                     f.close()
 

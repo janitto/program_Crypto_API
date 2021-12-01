@@ -764,7 +764,7 @@ def init_db(db_file):
 
 def send_mail(crypto, price, action, body):
 
-    with open(f"meta_login_example.json") as login:
+    with open(f"bin/meta_login_example.json") as login:
         data = json.load(login)
         gmail_username = data["gmail"]["email"]
         gmail_password = data["gmail"]["password"]
@@ -791,7 +791,7 @@ def authenticatespreadsheet(doc_name, sheet_name):
              'https://www.googleapis.com/auth/spreadsheets',
              "https://www.googleapis.com/auth/drive.file",
              "https://www.googleapis.com/auth/drive"]
-    creds = ServiceAccountCredentials.from_json_keyfile_name("google_cheets.json", scope)
+    creds = ServiceAccountCredentials.from_json_keyfile_name("bin/google_cheets.json", scope)
     client = gspread.authorize(creds)
     return client.open(doc_name).worksheet(sheet_name)
 

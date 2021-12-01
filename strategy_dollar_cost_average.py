@@ -9,13 +9,13 @@ import random
 parser = argparse.ArgumentParser()
 parser.add_argument('action', type=str, help="Possible action: buy/audit/withdraw")
 parser.add_argument('spend_eur', type=float, help="Amountof EUR to spend")
-parser.add_argument('crypto', type=str, help="Possible crypto: btc/eth")
+parser.add_argument('crypto', type=str, help="Possible crypto: btc/eth/...")
 args = parser.parse_args()
 action = args.action
 spend_eur = args.amount
 crypto = args.crypto
 
-logging.basicConfig(filename="logfile.log",
+logging.basicConfig(filename="logs/DCA_logfile.log",
                     filemode="a",
                     format="%(asctime)s - %(message)s",
                     level="INFO")
@@ -36,5 +36,4 @@ elif str(action).lower() == "withdraw":
     logging.info(f"{str(crypto).upper()} withdrawal of {withdraw['amount']} to {withdraw['address']}")
 
 else:
-    print("No valid action.")
-    logging.error("Action incorrect. Choose: buy / action")
+    logging.error(f"Action {action} incorrect. Choose: - buy / withdraw / audit - action")

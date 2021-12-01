@@ -16,7 +16,7 @@ amount = args.amount
 trailing = args.trailing
 
 
-logging.basicConfig(filename="logfile.log",
+logging.basicConfig(filename="logs/TS_logfile.log",
                     filemode="a",
                     format="%(asctime)s - %(message)s",
                     level="INFO")
