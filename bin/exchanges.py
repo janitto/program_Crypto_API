@@ -248,6 +248,7 @@ class Gemini:
                     .set_properties(**{'border-color': 'black', "border-width": "1px", 'border-style': 'solid'}) \
                     .render()
 
+
 class Kraken:
 
     def __init__(self, name=""):
@@ -429,6 +430,7 @@ class Kraken:
                     .bar(subset=['price', 'quantity'], color='lawngreen') \
                     .set_properties(**{'border-color': 'black', "border-width": "1px", 'border-style': 'solid'}) \
                     .render()
+
 
 class Bitstamp:
     #   https://www.bitstamp.net/api/
@@ -743,6 +745,7 @@ class Bitstamp:
         r = requests.post(f"{self.uri}/{self.apiversion}/sell/instant/{pair}/", headers=headers, data=payload_string)
         return r.json()
 
+
 def init_db(db_file):
     create_projects_table = """ CREATE TABLE IF NOT EXISTS trades (
                                         id integer PRIMARY KEY ,
@@ -761,6 +764,7 @@ def init_db(db_file):
     cursor = conn.cursor()
     cursor.execute(create_projects_table)
     return conn
+
 
 def send_mail(crypto, price, action, body):
 
@@ -781,9 +785,11 @@ def send_mail(crypto, price, action, body):
     except:
         print('Something went wrong with email sending...')
 
+
 def truncate(n, decimals=8):
     multiplier = 10 ** decimals
     return int(n * multiplier) / multiplier
+
 
 def authenticatespreadsheet(doc_name, sheet_name):
     # obtain JSON file from https://console.cloud.google.com/ - video: https://www.youtube.com/watch?v=V51zRxLAVWU&t=646s
@@ -795,6 +801,7 @@ def authenticatespreadsheet(doc_name, sheet_name):
     client = gspread.authorize(creds)
     return client.open(doc_name).worksheet(sheet_name)
 
+
 def get_transaction_details_gemini(transaction, source):
     transaction_date = str(datetime.fromtimestamp(transaction['timestamp']).date())
     transaction_id = float(transaction['tid'])
@@ -805,6 +812,7 @@ def get_transaction_details_gemini(transaction, source):
     transaction_type = transaction["type"]
     eur_amount = quantity * btc_price + fee
     return [transaction_date, transaction_id, provider, transaction_type, quantity, btc_price, eur_amount, fee]
+
 
 def get_transaction_details_bitstamp(transaction, crypto, source):
     datum = transaction["datetime"]
@@ -821,3 +829,4 @@ def get_transaction_details_bitstamp(transaction, crypto, source):
         transaction_type = "Buy"
     eur_amount = quantity * btc_price + fee
     return [transaction_date, transaction_id, provider, transaction_type, abs(quantity), btc_price, abs(eur_amount), fee]
+

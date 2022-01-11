@@ -8,15 +8,17 @@ import argparse
 import datetime
 
 parser = argparse.ArgumentParser()
+parser.add_argument('exchange', type=str, help="Define exchange.")
 parser.add_argument('currency', type=str, help="Define currency to trade.")
 parser.add_argument('buyif', type=float, help="Buy if price decrease %")
 parser.add_argument('sellif', type=float, help="TSell if price rise %")
 args = parser.parse_args()
+exchange = args.exchange
 curr = args.currency
 buyif = args.buyif
 sellif = args.sellif
 
-logging.basicConfig(filename=f"logs/{curr}_content_log.log",
+logging.basicConfig(filename=f"logs/{exchange}_{curr}_content_log.log",
                     filemode="a",
                     format="%(asctime)s - %(message)s",
                     level="INFO")
@@ -29,9 +31,15 @@ TURNAROUND_PERIOD = 86400                   #86400 seconds is 1 day
 EXCHANGE_FEE = 0.00                         #fee for trade %
 EXCHANGE_COMMISION = 1 - EXCHANGE_FEE	    #remainer after deducing fee
 
-exchange = Bitstamp(name="example")
-#exchange = Kraken(name="example")
-#exchange = Gemini(name="example")
+if exchange.lower() == "bitstamp":
+    exchange = Bitstamp(name="example")
+elif exchange.lower() == "kraken":
+    exchange = Kraken(name="example")
+elif exchange.lower() == "gemini":
+    exchange = Gemini(name="example")
+else:
+    logging.error("Wrong exchange defined as arg1")
+
 
 def start_bot(currency, total_investments=3):
     prices = []
@@ -107,6 +115,7 @@ def start_bot(currency, total_investments=3):
         logging.debug(f"IDs: {kupene_id}")
         logging.debug("-------")
         sleep(CHECK_INTERVAL)
+
 
 if __name__ == "__main__":
     start_bot(curr)

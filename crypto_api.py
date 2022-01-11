@@ -21,14 +21,16 @@ api = Api(app)
 balance_get_args = reqparse.RequestParser()
 balance_get_args.add_argument('currency')
 
-transastions_get_args = reqparse.RequestParser()
-transastions_get_args.add_argument("since")
+transactions_get_args = reqparse.RequestParser()
+transactions_get_args.add_argument("since")
 
 defined_exchanges = ["gemini", "bitstamp", "kraken"]
+
 
 def abort_if_invalid_exchange(exchange):
     if exchange not in defined_exchanges:
         abort(404, message="Exchange " + exchange + " not included in project. Use Gemini, Kraken or Bitstamp")
+
 
 @app.route("/")
 def index():
@@ -38,6 +40,7 @@ def index():
         md_css_string = "<style>" + css_string + "</style>"
         md_template = md_css_string + markdown.markdown(markdown_file.read(), extras=['fenced-code-blocks', "tables"])
         return md_template
+
 
 @app.route("/healthcheck")
 def healthcheck():
@@ -49,10 +52,11 @@ def healthcheck():
     if number_of_lines == 0:
         db_status = "EMPTY"
     else:
-        db_status = f"{number_of_lines} wors"
+        db_status = f"{number_of_lines} rows"
 
     return {"SERVER status": "UP",
             "DB status": db_status}, 200
+
 
 @app.route("/balance/<exchange>")
 def get_balance(exchange):
@@ -75,14 +79,16 @@ def get_balance(exchange):
             "currency": currency,
             "balance": balance}, 200
 
+
 @app.route("/audit/<exchange>/<currency>")
 def audit(exchange, currency):
     return eval(f"{exchange}.draw_chart(\"{currency.upper()}\")")
 
+
 @app.route("/transactions/<exchange>/<pair>")
 def get(exchange, pair):
     abort_if_invalid_exchange(str(exchange).lower())
-    args = transastions_get_args.parse_args()
+    args = transactions_get_args.parse_args()
 
     if exchange == "gemini":
         transactions = gemini.show_transactions(pair)
