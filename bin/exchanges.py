@@ -214,9 +214,6 @@ class Gemini:
         return self.gemini_api_query('/v1/mytrades', payload)[::-1]
 
     def fill_sheet_file(self, pair, sheetfile):
-
-        cursor = self.dbconn.cursor()
-
         crypto = str(pair[:3])
         self.load_key(self.name, "gemini")
         audit_file = authenticatespreadsheet(sheetfile, f"{self.__class__.__name__}({crypto.upper()})")
@@ -227,19 +224,36 @@ class Gemini:
             if buy['tid'] > last_gemini_transaction:
                 data = get_transaction_details_gemini(buy, source=self.__class__.__name__)
                 audit_file.append_row(data, value_input_option="USER_ENTERED")
-                data.append(crypto.upper())
-                cursor.execute(self.insert_values_query, tuple(data))
                 num_rows_added += 1
                 time.sleep(0.5)
-
-        self.dbconn.commit()
         return num_rows_added
 
+    def fill_database(self, pair):
+        num_rows_added = 0
+        crypto = str(pair[:3])
+        cursor = self.dbconn.cursor()
+        try:
+            buys = self.show_transactions(pair)
+        except:
+            return f"Nothing found for {pair} in {self.__class__.__name__}"
+
+        for buy in buys:
+            data = get_transaction_details_gemini(buy, source=self.__class__.__name__)
+            data.append(crypto.upper())
+            cursor.execute(self.insert_values_query, tuple(data))
+            num_rows_added += 1
+
+        self.dbconn.commit()
+        return f"To {self.__class__.__name__} were added {num_rows_added} transactions for {pair}."
+
     def draw_chart(self, currency):
-        df = pd.read_sql_query(f"select * from trades where provider = \"Gemini\" and currency = \"{currency.upper()}\" order by date desc", self.dbconn)
+        df = pd.read_sql_query(f"select * from trades "
+                               f"where provider = \"{self.__class__.__name__}\" "
+                               f"and currency = \"{currency.upper()}\" "
+                               f"order by date desc", self.dbconn)
         return df.style \
                     .set_caption("List of trades.") \
-                    .format({"quanitiy": "{:20,.6f}",
+                    .format({"quantity": "{:20,.6f}",
                              "price": "{} €",
                              "eur_spent": "{:20,.2f} €",
                              "fee": "{:10,.3f} €"}) \
@@ -257,7 +271,7 @@ class Kraken:
         self.secret = ""
         self.uri = "https://api.kraken.com"
         self.apiversion = "0"
-        self.insert_values_query = '''INSERT INTO trades (date,internal_id,provider,type,quantity,price,eur_spent,fee,currency) VALUES (?,?,?,?,?,?,?,?,?)'''
+        self.insert_values_query = '''INSERT or IGNORE into trades (date,internal_id,provider,type,quantity,price,eur_spent,fee,currency) VALUES (?,?,?,?,?,?,?,?,?)'''
         self.dbconn = init_db("bin/trades.db")
 
     def load_key(self, name, action):
@@ -294,6 +308,7 @@ class Kraken:
     def kraken_currency_mappings(currency):
 
         mappings = {"btc": "xbt",
+                    "BTC": "XBT",
                     "doge": "xdg"}
 
         if currency in mappings:
@@ -303,15 +318,15 @@ class Kraken:
 
     @staticmethod
     def kraken_pair_mappings(pair):
-        if pair == "btceur":
+        if pair.lower() == "btceur":
             pair = "XXBTZEUR"
-        if pair == "xlmeur":
+        if pair.lower() == "xlmeur":
             pair = "XXLMZEUR"
-        if pair == "dogeeur":
+        if pair.lower() == "dogeeur":
             pair = "XDGEUR"
-        if pair == "xrpeur":
+        if pair.lower() == "xrpeur":
             pair = "XXRPZEUR"
-        if pair == "ltceur":
+        if pair.lower() == "ltceur":
             pair = "XLTCZEUR"
         return pair
 
@@ -418,11 +433,32 @@ class Kraken:
                 trades.append(r["result"]["trades"][trade])
         return trades
 
+    def fill_database(self, pair):
+        num_rows_added = 0
+        crypto = str(pair[:3])
+        cursor = self.dbconn.cursor()
+        try:
+            buys = self.show_transactions(pair)
+        except:
+            return f"Nothing found for {pair} in {self.__class__.__name__}"
+
+        for buy in buys:
+            data = get_transaction_details_kraken(buy, source=self.__class__.__name__)
+            data.append(crypto.upper())
+            cursor.execute(self.insert_values_query, tuple(data))
+            num_rows_added += 1
+
+        self.dbconn.commit()
+        return f"To {self.__class__.__name__} were added {num_rows_added} transactions for {pair}."
+
     def draw_chart(self, currency):
-        df = pd.read_sql_query(f"select * from trades where provider = \"Kraken\" and currency = \"{currency}\" order by date desc", self.dbconn)
+        df = pd.read_sql_query(f"select * from trades "
+                               f"where provider = \"{self.__class__.__name__}\" "
+                               f"and currency = \"{currency.upper()}\" "
+                               f"order by date desc", self.dbconn)
         return df.style \
                     .set_caption("List of trades.") \
-                    .format({"quanitiy": "{:20,.6f}",
+                    .format({"quantity": "{:20,.6f}",
                              "price": "{} €",
                              "eur_spent": "{:20,.2f} €",
                              "fee": "{:10,.3f} €"}) \
@@ -646,9 +682,6 @@ class Bitstamp:
         return self.bitstamp_api_query(f"user_transactions/{pair}", payload)
 
     def fill_sheet_file(self, pair, sheetfile):
-
-        cursor = self.dbconn.cursor()
-
         crypto = str(pair[:3])
         audit_file = authenticatespreadsheet(sheetfile, f"{self.__class__.__name__}({crypto.upper()})")
         transactions = self.show_transactions(pair)
@@ -657,14 +690,30 @@ class Bitstamp:
         for transaction in transactions:
             if transaction['id'] > last_bitstamp_transaction:
                 data = get_transaction_details_bitstamp(transaction, crypto, source=self.__class__.__name__)
-                #audit_file.append_row(data, value_input_option="USER_ENTERED")
-                data.append(crypto.upper())
-                cursor.execute(self.insert_values_query, tuple(data))
+                audit_file.append_row(data, value_input_option="USER_ENTERED")
                 num_rows_added += 1
                 time.sleep(0.5)
+        return num_rows_added
+
+    def fill_database(self, pair):
+        num_rows_added = 0
+        crypto = str(pair[:3])
+        cursor = self.dbconn.cursor()
+        try:
+            buys = self.show_transactions(pair)
+        except:
+            return f"Nothing found for {pair} in {self.__class__.__name__}"
+
+        for buy in buys:
+            data = get_transaction_details_bitstamp(buy, crypto, source=self.__class__.__name__)
+            data.append(crypto.upper())
+            cursor.execute(self.insert_values_query, tuple(data))
+            num_rows_added += 1
 
         self.dbconn.commit()
-        return num_rows_added
+        return f"To {self.__class__.__name__} were added {num_rows_added} transactions for {pair}."
+
+
 #---------------------------
     def sell_limit(self, pair, amount, price):
         self.load_key(self.name, "bitstamp")
@@ -814,13 +863,25 @@ def get_transaction_details_gemini(transaction, source):
     return [transaction_date, transaction_id, provider, transaction_type, quantity, btc_price, eur_amount, fee]
 
 
+def get_transaction_details_kraken(transaction, source):
+    transaction_date = str(datetime.fromtimestamp(transaction['time']).date())
+    transaction_id = transaction['ordertxid']
+    provider = source
+    quantity = float(transaction['vol'])
+    btc_price = float(transaction['price'])
+    fee = float(transaction['fee'])
+    transaction_type = str(transaction["type"]).capitalize()
+    eur_amount = quantity * btc_price + fee
+    return [transaction_date, transaction_id, provider, transaction_type, quantity, btc_price, eur_amount, fee]
+
+
 def get_transaction_details_bitstamp(transaction, crypto, source):
     datum = transaction["datetime"]
     datum = datetime.strptime(datum, '%Y-%m-%d %H:%M:%S.%f')
     transaction_date = datum.strftime("%Y-%m-%d")
-    transaction_id = float(transaction['id'])
+    transaction_id = float(transaction['order_id'])
     provider = source
-    quantity = float(transaction[crypto])
+    quantity = abs(float(transaction[crypto]))
     btc_price = float(transaction[f'{crypto}_eur'])
     fee = float(transaction['fee'])
     if float(transaction[crypto]) < 0:
