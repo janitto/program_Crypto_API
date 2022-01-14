@@ -392,6 +392,7 @@ class Kraken:
                    "volume": crypto_amount,
                    "pair": str(pair).upper()
                    }
+        # {'error': [], 'result': {'txid': ['OMKCOS-YMFIT-VDK3GE'], 'descr': {'order': 'buy 85.75299707 TRXEUR @ market'}}}
 
         return self.kraken_api_query("AddOrder", payload)
 
@@ -408,6 +409,7 @@ class Kraken:
                    "volume": amount,
                    "pair": str(pair).upper()
                    }
+        # {'error': [], 'result': {'txid': ['OES2EY-D5XJY-Y44AIY'], 'descr': {'order': 'sell 85.75299707 TRXEUR @ market'}}}
 
         return self.kraken_api_query("AddOrder", payload)
 
