@@ -117,6 +117,18 @@ class Gemini:
 
         return self.gemini_api_query("/v1/order/new", payload)
 
+    def sell_instant(self, pair, amount):
+        self.load_key(self.name, "gemini")
+        payload = {
+            'symbol': str(pair).upper(),
+            'amount': str(amount),
+            'side': "sell",
+            'options': ["immediate-or-cancel"],
+            'type': 'exchange limit'
+        }
+
+        return self.gemini_api_query("/v1/order/new", payload)
+
     def show_open_orders(self):
         self.load_key(self.name, "gemini")
         return self.gemini_api_query('/v1/orders')
@@ -383,6 +395,22 @@ class Kraken:
 
         return self.kraken_api_query("AddOrder", payload)
 
+    def sell_instant(self, pair, amount):
+        pair_base = str(pair).replace("eur", "")
+        self.load_key(self.name, "kraken")
+
+        first = self.kraken_currency_mappings(pair_base)
+        second = self.kraken_currency_mappings(pair[-3:])
+        pair = first + second
+
+        payload = {"ordertype": "market",
+                   "type": "sell",
+                   "volume": amount,
+                   "pair": str(pair).upper()
+                   }
+
+        return self.kraken_api_query("AddOrder", payload)
+
     def show_open_orders(self):
         self.load_key(self.name, "kraken")
         return self.kraken_api_query("OpenOrders")
@@ -401,8 +429,16 @@ class Kraken:
         self.load_key(self.name, "kraken")
         r = self.kraken_api_query("Balance")
         if currency:
-            mapped = self.kraken_currency_mappings(str(currency).lower)
-            amount = r["result"][f"X{str(mapped).upper()}"]
+            if currency == "xrp": mapped = "xxrp"
+            elif currency == "xlm": mapped = "xxlm"
+            elif currency == "eur": mapped = "zeur"
+            elif currency == "btc": mapped = "xxbt"
+            elif currency == "doge": mapped = "xxdg"
+            else: mapped = currency
+            try:
+                amount = r["result"][f"{str(mapped).upper()}"]
+            except:
+                amount = 0
             return float(amount)
         else:
             for field in r["result"]:
@@ -588,6 +624,12 @@ class Bitstamp:
 
         return self.bitstamp_api_query(f"buy/instant/{pair}", payload)
 
+    def sell_instant(self, pair, amount):
+        self.load_key(self.name, "bitstamp")
+        payload = {'amount': amount}
+
+        return self.bitstamp_api_query(f"sell/instant/{pair}", payload)
+
     def show_open_orders(self):
         self.load_key(self.name, "bitstamp")
 
@@ -627,7 +669,10 @@ class Bitstamp:
         self.load_key(self.name, "bitstamp")
         r = self.bitstamp_api_query("balance")
         if currency:
-            amount = r[f"{currency}_available"]
+            try:
+                amount = r[f"{currency}_available"]
+            except:
+                amount = 0
             return float(amount)
         else:
             for field in r:
