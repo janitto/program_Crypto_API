@@ -70,21 +70,21 @@ k = exchange.fill_sheet_file("btc")
 
 ## Currently implemented
 
-|  | Gemini  |Bitstamp | Kraken | Audit |
-| ------------- | :-------------: | :-------------: | :-------------: | :-------------: |
-| get_actual_price  | OK | OK | OK |   |
-| buy_limit         | OK | OK | OK |   |
-| buy_instant       | OK | OK | OK |   |
-| show_open_orders  | OK | OK | OK |   |
-| check_status      | OK | OK | OK |   |
-| cancel_oder       | OK | OK | OK |   | 
-| get_balance       | OK | OK | OK |  |
-| get_amount_bought | OK | OK | OK |   |
-| withdraw_to_wallet| * | OK |   |   |
-| show_transactions | OK | OK | OK |  |
-| fill_sheet_file   | OK | * |   |   |
-| REST API | [balance](/balance/gemini) / [transactions](/transactions/gemini/btceur?since=01-10-2021) | [balance](/balance/bitstamp) / [transactions](/transactions/bitstamp/btceur?since=01-10-2021) | [balance](/balance/kraken) / [transactions](/transactions/kraken/btceur?since=01-10-2021) |
-| Audit | [Gemini audit](/audit/gemini/btc) | [Bitstamp audit](/audit/bitstamp/btc) | [Kraken audit](/audit/kraken/btc) |  |
+|  |                                      Gemini                                       |                                       Bitstamp                                        |                                      Kraken                                       | Audit |
+| ------------- |:---------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------:| :-------------: |
+| get_actual_price  |                                        OK                                         |                                          OK                                           |                                        OK                                         |   |
+| buy_limit         |                                        OK                                         |                                          OK                                           |                                        OK                                         |   |
+| buy_instant       |                                        OK                                         |                                          OK                                           |                                        OK                                         |   |
+| show_open_orders  |                                        OK                                         |                                          OK                                           |                                        OK                                         |   |
+| check_status      |                                        OK                                         |                                          OK                                           |                                        OK                                         |   |
+| cancel_oder       |                                        OK                                         |                                          OK                                           |                                        OK                                         |   | 
+| get_balance       |                                        OK                                         |                                          OK                                           |                                        OK                                         |  |
+| get_amount_bought |                                        OK                                         |                                          OK                                           |                                        OK                                         |   |
+| withdraw_to_wallet|                                         *                                         |                                          OK                                           |                                                                                   |   |
+| show_transactions |                                        OK                                         |                                          OK                                           |                                        OK                                         |  |
+| fill_sheet_file   |                                        OK                                         |                                           *                                           |                                                                                   |   |
+| REST API | [balance](/balance/<user>/gemini) / [trades](/trades_over_time/<user>/gemini/btc) | [balance](/balance/<user>/bitstamp) / [trades](/trades_over_time/<user>/bitstamp/btc) | [balance](/balance/<user>/kraken) / [trades](/trades_over_time/<user>/kraken/btc) |
+| Audit |                     [Gemini audit](/audit/<user>/gemini/btc)                      |                     [Bitstamp audit](/audit/<user>/bitstamp/btc)                      |                     [Kraken audit](/audit/<user>/kraken/btc)                      |  |
 ## Strategies
 
 ### 1. dollar_cost_average.py (action="" spend_eur="" crypto="")

@@ -1,19 +1,16 @@
 import hashlib
 import hmac
-import smtplib
 import time
 import uuid
 from urllib.parse import urlencode
 import requests
 import json
-import logging
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
 import base64
 import sqlite3
 import pandas as pd
-import os
 
 class Gemini:
     #   https://docs.gemini.com/rest-api/
@@ -23,7 +20,7 @@ class Gemini:
         self.key = ""
         self.secret = ""
         self.uri = "https://api.gemini.com"
-        self.insert_values_query = '''INSERT or IGNORE into trades (date,internal_id,provider,type,quantity,price,eur_spent,fee,currency) VALUES (?,?,?,?,?,?,?,?,?)'''
+        self.insert_values_query = '''INSERT or IGNORE into trades (date,internal_id,provider,type,quantity,price,eur_spent,fee,currency,user) VALUES (?,?,?,?,?,?,?,?,?,?)'''
         self.dbconn = init_db("bin/trades.db")
 
     def load_key(self, name, action):
@@ -252,16 +249,18 @@ class Gemini:
         for buy in buys:
             data = get_transaction_details_gemini(buy, source=self.__class__.__name__)
             data.append(crypto.upper())
+            data.append(self.name)
             cursor.execute(self.insert_values_query, tuple(data))
             num_rows_added += 1
 
         self.dbconn.commit()
-        return f"To {self.__class__.__name__} were added {num_rows_added} transactions for {pair}."
+        return f"On {self.__class__.__name__} founded {num_rows_added} transactions for {pair}."
 
     def draw_chart(self, currency):
         df = pd.read_sql_query(f"select * from trades "
                                f"where provider = \"{self.__class__.__name__}\" "
                                f"and currency = \"{currency.upper()}\" "
+                               f"and user = \"{self.name}\" "
                                f"order by date desc", self.dbconn)
         return df.style \
                     .set_caption("List of trades.") \
@@ -283,7 +282,7 @@ class Kraken:
         self.secret = ""
         self.uri = "https://api.kraken.com"
         self.apiversion = "0"
-        self.insert_values_query = '''INSERT or IGNORE into trades (date,internal_id,provider,type,quantity,price,eur_spent,fee,currency) VALUES (?,?,?,?,?,?,?,?,?)'''
+        self.insert_values_query = '''INSERT or IGNORE into trades (date,internal_id,provider,type,quantity,price,eur_spent,fee,currency,user) VALUES (?,?,?,?,?,?,?,?,?,?)'''
         self.dbconn = init_db("bin/trades.db")
 
     def load_key(self, name, action):
@@ -483,16 +482,18 @@ class Kraken:
         for buy in buys:
             data = get_transaction_details_kraken(buy, source=self.__class__.__name__)
             data.append(crypto.upper())
+            data.append(self.name)
             cursor.execute(self.insert_values_query, tuple(data))
             num_rows_added += 1
 
         self.dbconn.commit()
-        return f"To {self.__class__.__name__} were added {num_rows_added} transactions for {pair}."
+        return f"On {self.__class__.__name__} founded {num_rows_added} transactions for {pair}."
 
     def draw_chart(self, currency):
         df = pd.read_sql_query(f"select * from trades "
                                f"where provider = \"{self.__class__.__name__}\" "
                                f"and currency = \"{currency.upper()}\" "
+                               f"and user = \"{self.name}\" "
                                f"order by date desc", self.dbconn)
         return df.style \
                     .set_caption("List of trades.") \
@@ -515,7 +516,7 @@ class Bitstamp:
         self.secret = b""
         self.uri = 'https://www.bitstamp.net/api'
         self.apiversion = 'v2'
-        self.insert_values_query = '''INSERT or IGNORE into trades (date,internal_id,provider,type,quantity,price,eur_spent,fee,currency) VALUES (?,?,?,?,?,?,?,?,?)'''
+        self.insert_values_query = '''INSERT or IGNORE into trades (date,internal_id,provider,type,quantity,price,eur_spent,fee,currency,user) VALUES (?,?,?,?,?,?,?,?,?,?)'''
         self.dbconn = init_db("bin/trades.db")
 
     def load_key(self, name, action):
@@ -754,92 +755,12 @@ class Bitstamp:
         for buy in buys:
             data = get_transaction_details_bitstamp(buy, crypto, source=self.__class__.__name__)
             data.append(crypto.upper())
+            data.append(self.name)
             cursor.execute(self.insert_values_query, tuple(data))
             num_rows_added += 1
 
         self.dbconn.commit()
-        return f"To {self.__class__.__name__} were added {num_rows_added} transactions for {pair}."
-
-
-#---------------------------
-    def sell_limit(self, pair, amount, price):
-        self.load_key(self.name, "bitstamp")
-        timestamp, nonce, content_type = self.get_timestamp_nonce()
-        payload = {'amount': amount, 'price': price}
-        payload_string = urlencode(payload)
-        string_to_sign = 'BITSTAMP ' + self.key + \
-                         'POST' + \
-                         'www.bitstamp.net' + \
-                         f"/api/{self.apiversion}/sell/{pair}/" + \
-                         '' + \
-                         content_type + \
-                         nonce + \
-                         timestamp + \
-                         self.apiversion + \
-                         payload_string
-        string_to_sign = string_to_sign.encode('utf-8')
-        signature = hmac.new(self.secret, msg=string_to_sign, digestmod=hashlib.sha256).hexdigest()
-        headers = {
-            'X-Auth': 'BITSTAMP ' + self.key,
-            'X-Auth-Signature': signature,
-            'X-Auth-Nonce': nonce,
-            'X-Auth-Timestamp': timestamp,
-            'X-Auth-Version': self.apiversion,
-            'Content-Type': content_type
-        }
-        r = requests.post(f"{self.uri}/{self.apiversion}/sell/{pair}/", headers=headers, data=payload_string)
-        # {'price': '1.72000', 'amount': '14.82113850', 'type': '1', 'id': '1337840616333312', 'datetime': '2021-03-11 09:50:18.892807'}
-        return r.json()
-
-    def sell_trailing(self, currency, amount, trailing_percent):
-        active_sell_price, _ = self.get_actual_price(currency)
-        trailing_value = round(active_sell_price * trailing_percent, 3)
-        logging.info(f"Zacinam trailing sell pri cene {active_sell_price}. Trailing {trailing_value}")
-        time.sleep(60)
-        while True:
-            sell_price, _ = self.get_actual_price(currency)
-            if sell_price > active_sell_price:
-                active_sell_price = sell_price
-                logging.info(f"Limit na trailing sell sa zvysil na {round(active_sell_price - trailing_value, 3)}")
-                time.sleep(60)
-            elif sell_price < active_sell_price - trailing_value:
-                logging.debug(f"Cena {sell_price} je nizsia ako {round(active_sell_price - trailing_value,3)}. Predavam.")
-                r = self.sell_instant(currency+"eur", amount)
-                prijem = float(r["amount"])*active_sell_price
-                logging.info(f"Trailing ukonceny. Prijem pri kurze {active_sell_price} je {prijem}")
-                break
-            else:
-                logging.debug(f"Trailing sell stale aktivny. Sell pri {round(active_sell_price - trailing_value, 3)}, teraz {active_sell_price}")
-                time.sleep(60)
-        return r
-
-    def sell_instant(self, pair, amount):
-        self.load_key(self.name, "bitstamp")
-        timestamp, nonce, content_type = self.get_timestamp_nonce()
-        payload = {'amount': amount}
-        payload_string = urlencode(payload)
-        string_to_sign = 'BITSTAMP ' + self.key + \
-                         'POST' + \
-                         'www.bitstamp.net' + \
-                         f"/api/{self.apiversion}/sell/instant/{pair}/" + \
-                         '' + \
-                         content_type + \
-                         nonce + \
-                         timestamp + \
-                         self.apiversion + \
-                         payload_string
-        string_to_sign = string_to_sign.encode('utf-8')
-        signature = hmac.new(self.secret, msg=string_to_sign, digestmod=hashlib.sha256).hexdigest()
-        headers = {
-            'X-Auth': 'BITSTAMP ' + self.key,
-            'X-Auth-Signature': signature,
-            'X-Auth-Nonce': nonce,
-            'X-Auth-Timestamp': timestamp,
-            'X-Auth-Version': self.apiversion,
-            'Content-Type': content_type
-        }
-        r = requests.post(f"{self.uri}/{self.apiversion}/sell/instant/{pair}/", headers=headers, data=payload_string)
-        return r.json()
+        return f"On {self.__class__.__name__} founded {num_rows_added} transactions for {pair}."
 
 
 def init_db(db_file):
@@ -853,33 +774,14 @@ def init_db(db_file):
                                         price float,
                                         eur_spent,
                                         fee float,
-                                        currency text
+                                        currency text,
+                                        user text
                                     ); """
 
     conn = sqlite3.connect(db_file, check_same_thread=False)
     cursor = conn.cursor()
     cursor.execute(create_projects_table)
     return conn
-
-
-def send_mail(crypto, price, action, body):
-
-    with open(f"bin/meta_login_example.json") as login:
-        data = json.load(login)
-        gmail_username = data["gmail"]["email"]
-        gmail_password = data["gmail"]["password"]
-        login.close()
-
-    try:
-        server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
-        server.ehlo()
-        server.login(gmail_username, gmail_password)
-        server.sendmail(gmail_username, gmail_username,
-                        f"Subject: {crypto.upper()} was {action} at price {price}\n\n{body}")
-        server.quit()
-        print("Email sent successfully.")
-    except:
-        print('Something went wrong with email sending...')
 
 
 def truncate(n, decimals=8):
