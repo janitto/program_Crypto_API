@@ -762,6 +762,22 @@ class Bitstamp:
         self.dbconn.commit()
         return f"On {self.__class__.__name__} founded {num_rows_added} transactions for {pair}."
 
+    def draw_chart(self, currency):
+        df = pd.read_sql_query(f"select * from trades "
+                               f"where provider = \"{self.__class__.__name__}\" "
+                               f"and currency = \"{currency.upper()}\" "
+                               f"and user = \"{self.name}\" "
+                               f"order by date desc", self.dbconn)
+        return df.style \
+                    .set_caption("List of trades.") \
+                    .format({"quantity": "{:20,.6f}",
+                             "price": "{} €",
+                             "eur_spent": "{:20,.2f} €",
+                             "fee": "{:10,.3f} €"}) \
+                    .hide_index() \
+                    .bar(subset=['price', 'quantity'], color='lawngreen') \
+                    .set_properties(**{'border-color': 'black', "border-width": "1px", 'border-style': 'solid'}) \
+                    .render()
 
 def init_db(db_file):
     create_projects_table = """ CREATE TABLE IF NOT EXISTS trades (
