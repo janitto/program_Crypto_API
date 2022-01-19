@@ -2,6 +2,7 @@ import pandas as pd
 from flask import Flask
 from flask_restful import Api, reqparse
 
+import json
 import requests
 import time
 import sqlite3
@@ -48,8 +49,8 @@ def healthcheck():
     else:
         db_status = f"{number_of_lines} rows"
 
-    return {"SERVER status": "UP",
-            "DB status": db_status}, 200
+    return json.dumps({"SERVER status": "UP",
+                       "DB status": db_status}), 200
 
 @app.route("/balance")
 def help_balance():
@@ -74,9 +75,9 @@ def get_balance(user, exchange):
     else:
         return "Unknown exchange defined.", 401
 
-    return {'exchange': exchange,
-            "currency": currency,
-            "balance": balance}, 200
+    return json.dumps({'exchange': exchange,
+                       "currency": currency,
+                       "balance": balance}), 200
 
 @app.route("/audit")
 def help_audit():

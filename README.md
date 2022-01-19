@@ -13,8 +13,12 @@ git clone https://github.com/janitto/program_Crypto_API.git
 Install modules:
 
 ``` python
-pip install requests gspread oauth2client pandas
-pip install flask flask-restful markdown2 pygments
+pip3 install requests gspread oauth2client pandas
+pip3 install flask flask-restful markdown2 pygments altair
+```
+On RaspberryPI downgrade package pyrsistent
+``` python
+pip3 install pyrsistent=0.17.3
 ```
 
 Download [NGROK](https://ngrok.com/download). Utility for tunneling your ports to internet.
@@ -29,14 +33,14 @@ List of Exchanges included in the package:
 * Bitstamp
 * Kraken
 
-Run the _"crypto_api.py"_ in the background.
+Run the API
 ``` bash
-nohup crypto_api.py &
+nohup python3 crypto_api.py &
 ```
 
 Run the ngrok
 ``` bash
-ngrok http -auth "username:password" -region=eu 7777
+nohup ngrok http -auth "username:password" -region=eu 1521
 ```
 
 ## Functions
@@ -70,7 +74,7 @@ k = exchange.fill_sheet_file("btc")
 
 ## Currently implemented
 
-|  |                                      Gemini                                       |                                       Bitstamp                                        |                                      Kraken                                       | Audit |
+|  |                                      Gemini                                       |                                       Bitstamp                                        |                                      Kraken                                       |  |
 | ------------- |:---------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------:| :-------------: |
 | get_actual_price  |                                        OK                                         |                                          OK                                           |                                        OK                                         |   |
 | buy_limit         |                                        OK                                         |                                          OK                                           |                                        OK                                         |   |
@@ -87,39 +91,39 @@ k = exchange.fill_sheet_file("btc")
 | Audit |                     [Gemini audit](/audit/<user>/gemini/btc)                      |                     [Bitstamp audit](/audit/<user>/bitstamp/btc)                      |                     [Kraken audit](/audit/<user>/kraken/btc)                      |  |
 ## Strategies
 
-### 1. dollar_cost_average.py (action="" spend_eur="" crypto="")
+### 1. dollar_cost_average.py (user="" exchange="" action="" --spend_eur="" --crypto="")
 
-Strategy for periodical buys auditing and withdrawing of crypto from exchanges.
+Strategy for periodical buys, auditing and withdrawing of crypto from exchanges.
 
 
+**user(str)** -> name of user. must correspond to credentials in metadata file name
+**exchange(str)** -> name of exchange: kraken/bitstamp/gemini
 **action(str)** -> buy / audit / withdraw  
-**spend_eur(float)** -> amount of EUR to spend (only in a buy)  
-**crpto(str)** -> symbol of crypto  
+**--spend_eur(float)** -> amount of EUR to spend (only in a buy)  
+**--crpto(str)** -> symbol of crypto  
 
 Example:  
 
 ``` bash
-nohup python dollar_cost_average.py "buy" 5 "btc" &
-nohup python dollar_cost_average.py "audit" "btc" &
-nohup python dollar_cost_average.py "withdraw" "btc" &
+python3 dollar_cost_average.py tom kraken "buy" 5 "btc"
+python3 dollar_cost_average.py rick gemini "audit" "btc"
+python3 dollar_cost_average.py smith bitstamp "withdraw" "btc"
 ```
- 
 
 Set up a kron job with defined parameters to enjoy DCA.
 
-(for an audit configure connection to google spreadsheets)  
-(for withdraw enter your public addresses to metadata)
-
-### 2. trailing_stop_sell.py (currency="" amount="" trailing="")
+### 2. trailing_stop_sell.py (user, exchange, currency="" amount="" trailing="")
 
 Strategy for setting a guaranteed minimal sell price, which will automatically increase, if price of crypto increase.
 
+**user(str)** -> name of user. must correspond to credentials in metadata file name  
+**exchange(str)** -> name of exchange: kraken/bitstamp/gemini  
 **currency(str)** -> symbol of crypto  
 **amount(float)** -> amount of crypto to be sold  
 **trailing(float)** -> if price drops by more than stated %, sell is initiated.  
 
 ``` bash
-trailing_stop_sell.py "ltc" 1 10
+nohup trailing_stop_sell.py "ltc" 1 10 &
 ```
 
 Let's say current price of LTC is 120 EUR /LTC, and you execute command above.
@@ -128,10 +132,12 @@ If price of LTC decrease to 108 EUR, 1 LTC is sold.
 If price of LTC increase to 130 EUR, trailing threshold (currently 108 EUR) will be increased to 118 EUR (130 EUR - 12 EUR).
 If price of LTC drop then to 120 EUR, nothing will happen, but if drops to 118 EUR, 1 LTC is sold.
 
-### 3. buy_low_sell_high.py (currency="", threshold="")
+### 3. buy_low_sell_high.py (user, exchange, currency="", threshold="")
 
 Strategy, which buy if price drops by defined threshold and then sell if price increase by defined threshold.
 
+**user(str)** -> name of user. must correspond to credentials in metadata file name  
+**exchange(str)** -> name of exchange: kraken/bitstamp/gemini  
 **currency(str)** -> symbol of crypto  
 **threshold(float)** -> threshold % in decimal
 
