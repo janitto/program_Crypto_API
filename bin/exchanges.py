@@ -83,7 +83,7 @@ class Gemini:
             price = price
         crypto_amount = round((eur_spend * .999) / float(price), 8)
         if pair[:3] == "eth":
-            crypto_amount = round(crypto_amount,6)
+            crypto_amount = round(crypto_amount, 6)
 
         payload = {
             'symbol': str(pair).upper(),
@@ -174,7 +174,7 @@ class Gemini:
 
     def withdraw_to_wallet(self, currency_to_withdraw):
 
-        with open(f"meta_login_{self.name}.json") as login:
+        with open(f"bin/meta_login_{self.name}.json") as login:
             data = json.load(login)
             address = data["my_addresses"][str(currency_to_withdraw).lower()]
             login.close()
@@ -328,6 +328,25 @@ class Kraken:
             return str(currency)
 
     @staticmethod
+    def kraken_long_currency_mappings(currency):
+
+        mappings = {"btc": "xxbt",
+                    "BTC": "XXBT",
+                    "doge": "xxdg",
+                    "DOGE": "XXDG",
+                    "EUR": "ZEUR",
+                    "eur": "zeur",
+                    "xlm": "xxlm",
+                    "XLM": "XXLM",
+                    "xrp": "xxrp",
+                    "XRP": "XXRP"}
+
+        if currency in mappings:
+            return str(mappings[currency])
+        else:
+            return str(currency)
+
+    @staticmethod
     def kraken_pair_mappings(pair):
         if pair.lower() == "btceur":
             pair = "XXBTZEUR"
@@ -430,12 +449,7 @@ class Kraken:
         self.load_key(self.name, "kraken")
         r = self.kraken_api_query("Balance")
         if currency:
-            if currency == "xrp": mapped = "xxrp"
-            elif currency == "xlm": mapped = "xxlm"
-            elif currency == "eur": mapped = "zeur"
-            elif currency == "btc": mapped = "xxbt"
-            elif currency == "doge": mapped = "xxdg"
-            else: mapped = currency
+            mapped = self.kraken_long_currency_mappings(currency)
             try:
                 amount = r["result"][f"{str(mapped).upper()}"]
             except:
@@ -469,6 +483,35 @@ class Kraken:
             if r["result"]["trades"][trade]["pair"] == str(pair).upper():
                 trades.append(r["result"]["trades"][trade])
         return trades
+
+    def withdraw_to_wallet(self, currency_to_withdraw):
+
+        with open(f"bin/meta_login_{self.name}.json") as login:
+            data = json.load(login)
+            address = data["my_addresses"][str(currency_to_withdraw).lower()]
+            login.close()
+
+        currency_to_withdraw = self.kraken_long_currency_mappings(currency_to_withdraw)
+
+        self.load_key(self.name, "kraken")
+        try:
+            amount = self.get_balance()["result"][str(currency_to_withdraw).upper()]
+        except:
+            amount = 0
+        if float(amount) != 0:
+            #   to do: subtract fees. (current fee is 0€)
+            payload = {
+                "asset": str(currency_to_withdraw).upper(),
+                "key": address,
+                "amount": float(amount)
+            }
+            withdraw = self.kraken_api_query("Withdraw", payload)
+
+            # {'error': [], 'result': {'refid': 'BSHJTYZ-PKJJ44-JLRORA'}}
+        else:
+            withdraw = {"amount": "Nothing to withdraw",
+                        "address": address}
+        return withdraw
 
     def fill_database(self, pair):
         num_rows_added = 0
@@ -665,7 +708,6 @@ class Bitstamp:
         # 'type': 0,
         # 'id': 1399223761735680}
 
-
         return self.bitstamp_api_query("cancel_order", payload)
 
     def get_balance(self, currency=False):
@@ -697,14 +739,14 @@ class Bitstamp:
         if r["status"] == "Finished" or r["status"] == "Canceled":
             total = 0
             for trans in r["transactions"]:
-                total+= float(trans[currency])
+                total += float(trans[currency])
         else:
             total = 0
         return truncate(total)
 
     def withdraw_to_wallet(self, currency_to_withdraw):
 
-        with open(f"meta_login_{self.name}.json") as login:
+        with open(f"bin/meta_login_{self.name}.json") as login:
             data = json.load(login)
             address = data["my_addresses"][str(currency_to_withdraw).lower()]
             login.close()
@@ -855,4 +897,3 @@ def get_transaction_details_bitstamp(transaction, crypto, source):
         transaction_type = "Buy"
     eur_amount = quantity * btc_price + fee
     return [transaction_date, transaction_id, provider, transaction_type, abs(quantity), btc_price, abs(eur_amount), fee]
-
