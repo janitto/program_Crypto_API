@@ -184,7 +184,7 @@ class Gemini:
         for currency in self.get_balance():
             if currency['currency'] == str(currency_to_withdraw).upper():
                 amount = currency['availableForWithdrawal']
-        if float(amount) != 0:
+        if float(amount) > 0.0001:
             #   to do: substract fees. (current fee is 0€)
             payload = {
                 "address": address,
@@ -498,7 +498,7 @@ class Kraken:
             amount = self.get_balance()["result"][str(currency_to_withdraw).upper()]
         except:
             amount = 0
-        if float(amount) != 0:
+        if float(amount) > 0.0001:
             #   to do: subtract fees. (current fee is 0€)
             payload = {
                 "asset": str(currency_to_withdraw).upper(),
