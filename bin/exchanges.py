@@ -756,7 +756,7 @@ class Bitstamp:
         fee = float(fee[f"{str(currency_to_withdraw).lower()}_withdrawal_fee"])
         amount = truncate(amount-fee, decimals=6)
 
-        if amount > 0:
+        if amount > 0.0001:
             self.load_key(self.name, "bitstamp")
             payload = {'amount': amount, 'address': address}
 
