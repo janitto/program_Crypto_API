@@ -155,7 +155,7 @@ def trades_over_time(user, exchange, currency):
     dots = base.mark_circle(size=50, opacity=1).encode(
         alt.X('Date:T'),
         alt.Y('price:Q'),
-        color = alt.Color('type',scale=alt.Scale(domain=domain, range=range)),
+        color=alt.Color('type', scale=alt.Scale(domain=domain, range=range)),
         tooltip=['date',
                  'internal_id', 'type', 'quantity', 'price', 'eur_spent',
                  'fee']

@@ -11,6 +11,7 @@ from datetime import datetime
 import base64
 import sqlite3
 import pandas as pd
+import numpy as np
 
 class Gemini:
     #   https://docs.gemini.com/rest-api/
@@ -257,17 +258,19 @@ class Gemini:
         return f"On {self.__class__.__name__} founded {num_rows_added} transactions for {pair}."
 
     def draw_chart(self, currency):
-        df = pd.read_sql_query(f"select * from trades "
+        df = pd.read_sql_query(f"select *, round(({self.get_actual_price(currency)[1]}/price-1)*100,4) as \"change\" from trades "
                                f"where provider = \"{self.__class__.__name__}\" "
                                f"and currency = \"{currency.upper()}\" "
                                f"and user = \"{self.name}\" "
                                f"order by date desc", self.dbconn)
+
         return df.style \
                     .set_caption("List of trades.") \
                     .format({"quantity": "{:20,.6f}",
                              "price": "{} €",
                              "eur_spent": "{:20,.2f} €",
-                             "fee": "{:10,.3f} €"}) \
+                             "fee": "{:10,.3f} €",
+                             "change": "{:20,.2f} %"}) \
                     .hide_index() \
                     .bar(subset=['price', 'quantity'], color='lawngreen') \
                     .set_properties(**{'border-color': 'black', "border-width": "1px", 'border-style': 'solid'}) \
@@ -533,17 +536,19 @@ class Kraken:
         return f"On {self.__class__.__name__} founded {num_rows_added} transactions for {pair}."
 
     def draw_chart(self, currency):
-        df = pd.read_sql_query(f"select * from trades "
+        df = pd.read_sql_query(f"select *, round(({self.get_actual_price(currency)[1]}/price-1)*100,4) as \"change\" from trades "
                                f"where provider = \"{self.__class__.__name__}\" "
                                f"and currency = \"{currency.upper()}\" "
                                f"and user = \"{self.name}\" "
                                f"order by date desc", self.dbconn)
+
         return df.style \
                     .set_caption("List of trades.") \
                     .format({"quantity": "{:20,.6f}",
                              "price": "{} €",
                              "eur_spent": "{:20,.2f} €",
-                             "fee": "{:10,.3f} €"}) \
+                             "fee": "{:10,.3f} €",
+                             "change": "{:20,.2f} %"}) \
                     .hide_index() \
                     .bar(subset=['price', 'quantity'], color='lawngreen') \
                     .set_properties(**{'border-color': 'black', "border-width": "1px", 'border-style': 'solid'}) \
@@ -805,17 +810,19 @@ class Bitstamp:
         return f"On {self.__class__.__name__} founded {num_rows_added} transactions for {pair}."
 
     def draw_chart(self, currency):
-        df = pd.read_sql_query(f"select * from trades "
+        df = pd.read_sql_query(f"select *, round(({self.get_actual_price(currency)[1]}/price-1)*100,4) as \"change\" from trades "
                                f"where provider = \"{self.__class__.__name__}\" "
                                f"and currency = \"{currency.upper()}\" "
                                f"and user = \"{self.name}\" "
                                f"order by date desc", self.dbconn)
+
         return df.style \
                     .set_caption("List of trades.") \
                     .format({"quantity": "{:20,.6f}",
                              "price": "{} €",
                              "eur_spent": "{:20,.2f} €",
-                             "fee": "{:10,.3f} €"}) \
+                             "fee": "{:10,.3f} €",
+                             "change": "{:20,.2f} %"}) \
                     .hide_index() \
                     .bar(subset=['price', 'quantity'], color='lawngreen') \
                     .set_properties(**{'border-color': 'black', "border-width": "1px", 'border-style': 'solid'}) \
@@ -884,7 +891,10 @@ def get_transaction_details_kraken(transaction, source):
 
 def get_transaction_details_bitstamp(transaction, crypto, source):
     datum = transaction["datetime"]
-    datum = datetime.strptime(datum, '%Y-%m-%d %H:%M:%S.%f')
+    try:
+        datum = datetime.strptime(datum, '%Y-%m-%d %H:%M:%S.%f')
+    except:
+        datum = datetime.strptime(datum, '%Y-%m-%d %H:%M:%S')
     transaction_date = datum.strftime("%Y-%m-%d")
     transaction_id = float(transaction['order_id'])
     provider = source
