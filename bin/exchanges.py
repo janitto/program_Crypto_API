@@ -11,7 +11,6 @@ from datetime import datetime
 import base64
 import sqlite3
 import pandas as pd
-import numpy as np
 
 class Gemini:
     #   https://docs.gemini.com/rest-api/
