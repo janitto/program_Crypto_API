@@ -2,56 +2,56 @@ from PyQt5 import uic
 from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidgetItem
 from bin.exchanges import Kraken
 from datetime import datetime
-import os
+import pyqtgraph as pg
+import time
+import requests
 
 class MyGUI(QMainWindow):
 
     def __init__(self):
         super(MyGUI, self).__init__()
-        print(os.listdir())
         uic.loadUi("bin/template.ui", self)
         self.exchange = Kraken(name="jany")
+        self.currency = self.get_currency()
+
+        self.graphWidget = pg.PlotWidget(self)
+        self.graphWidget.setGeometry(310, 420, 340, 100)
+        self.graphWidget.setBackground('w')
+
         self.show()
 
         self.balancesRefresh.clicked.connect(self.refresh_balances)
+        self.balancesRefresh.clicked.connect(self.refresh_chart)
         self.tradesRefresh.clicked.connect(self.refresh_trades)
 
     def refresh_balances(self):
-        if self.tradesTRX.isChecked():
-            balance = self.exchange.get_balance("trx")
-        if self.tradesADA.isChecked():
-            balance1 = self.exchange.get_balance("ada")
-            balance2 = self.exchange.get_balance("ada.s")
-            if balance1 >= balance2:
-                balance = balance1
-            else:
-                balance = balance2
-        if self.tradesDOT.isChecked():
-            balance1 = self.exchange.get_balance("dot")
-            balance2 = self.exchange.get_balance("dot.s")
-            if balance1 >= balance2:
-                balance = balance1
-            else:
-                balance = balance2
-        if self.tradesBTC.isChecked():
-            balance = self.exchange.get_balance("btc")
-        if self.tradesETH.isChecked():
-            balance = self.exchange.get_balance("eth")
-
+        self.currency = self.get_currency()
+        if self.currency in ("ada", "dot"):
+            self.currency = self.currency + ".s"
+        balance = self.exchange.get_balance(self.currency)
         self.balanceLabel.setText("Balance: " + str(balance))
 
+    def refresh_chart(self):
+        self.graphWidget.clear()
+        self.currency = self.get_currency()
+        params = {"symbol": f"{self.currency.upper()}EUR",
+                  "interval": "30m",
+                  "startTime": int(time.time() * 1000) - 604800000,
+                  "endTime": int(time.time() * 1000)}
+        r = requests.get("https://api.binance.com/api/v3/klines", params=params)
+        r = r.json()
+        prices = []
+        for day in r:
+            prices.append(float(day[4]))
+
+
+        self.graphWidget.plot(prices)
+
+
     def refresh_trades(self):
+        self.currency = self.get_currency()
         self.tradesTable.clearContents()
-        if self.tradesTRX.isChecked():
-            trades = self.exchange.show_transactions("trxeur")
-        if self.tradesADA.isChecked():
-            trades = self.exchange.show_transactions("adaeur")
-        if self.tradesDOT.isChecked():
-            trades = self.exchange.show_transactions("doteur")
-        if self.tradesBTC.isChecked():
-            trades = self.exchange.show_transactions("btceur")
-        if self.tradesETH.isChecked():
-            trades = self.exchange.show_transactions("etheur")
+        trades = self.exchange.show_transactions(f"{self.currency}eur")
 
         row = 0
         for trade in trades:
@@ -63,8 +63,17 @@ class MyGUI(QMainWindow):
                 row += 1
             self.tradesTable.resizeColumnsToContents()
 
-    def mouseMoveEvent(self, e):
-        self.label.setText("mouseMoveEvent")
+    def get_currency(self):
+        if self.tradesTRX.isChecked():
+            return "trx"
+        elif self.tradesADA.isChecked():
+            return "ada"
+        elif self.tradesDOT.isChecked():
+            return "dot"
+        elif self.tradesETH.isChecked():
+            return "eth"
+        else:
+            return "btc"
 
 app = QApplication([])
 window = MyGUI()
