@@ -37,7 +37,7 @@ if str(action).lower() == "buy":
     if spend_eur is None or crypto is None:
         logging.error("No SPEND_EUR or CRYPTO defined.")
     else:
-        sleep(random.randint(10, 200))
+        #sleep(random.randint(10, 200))
         buy = exchange.buy_limit(f"{crypto}eur", spend_eur)
         logging.info(f"{args.exchange.upper()} Crypto buy: {buy}")
 

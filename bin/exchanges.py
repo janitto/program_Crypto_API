@@ -793,8 +793,9 @@ class Bitstamp:
         num_rows_added = 0
         crypto = str(pair[:3])
         cursor = self.dbconn.cursor()
+        buys = self.show_transactions(pair)
         try:
-            buys = self.show_transactions(pair)
+            _ = buys["order_id"]
         except:
             return f"Nothing found for {pair} in {self.__class__.__name__}"
 
