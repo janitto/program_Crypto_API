@@ -172,6 +172,15 @@ class Gemini:
             total = 0
         return truncate(total)
 
+    def estimate_fee(self, currency, address, amount):
+        self.load_key(self.name, "gemini")
+        payload = {
+            "address": address,
+            "amount": amount
+        }
+
+        return self.gemini_api_query(f'/v1/withdraw/{currency}/feeEstimate', payload)['fee']['value']
+
     def withdraw_to_wallet(self, currency_to_withdraw):
 
         with open(f"bin/meta_login_{self.name}.json") as login:
@@ -185,10 +194,12 @@ class Gemini:
             if currency['currency'] == str(currency_to_withdraw).upper():
                 amount = currency['availableForWithdrawal']
         if float(amount) > 0.0001:
-            #   to do: substract fees. (current fee is 0€)
+            if currency_to_withdraw.lower() == "eth":
+                amount = float(amount) - float(self.estimate_fee(currency_to_withdraw, address, amount))*1.1
+
             payload = {
                 "address": address,
-                "amount": amount
+                "amount": str(amount)
             }
 
             withdraw = self.gemini_api_query(f"/v1/withdraw/{str(currency_to_withdraw).upper()}", payload)
@@ -252,6 +263,7 @@ class Gemini:
             data.append(self.name)
             cursor.execute(self.insert_values_query, tuple(data))
             num_rows_added += 1
+
 
         self.dbconn.commit()
         return f"On {self.__class__.__name__} founded {num_rows_added} transactions for {pair}."
